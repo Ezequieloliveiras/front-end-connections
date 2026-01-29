@@ -8,16 +8,19 @@ interface Props {
   onChange: (id: string, value: any) => void
 }
 
-export function InputField({ field, value, onChange }: Props) {
-  switch (field.type) {
-    case "text":
-      return (
-        <input
-          value={value ?? ""}
-          onChange={e => onChange(field.id, e.target.value)}
-        />
-      )
-    default:
-      return null
-  }
+interface Props {
+  field: FieldSchema
+  value: any
+  onChange: (name: string, value: any) => void
 }
+
+export function InputField({ field, value, onChange }: Props) {
+  return (
+    <input
+      name={field.name}
+      value={value ?? ""}
+      onChange={e => onChange(field.name, e.target.value)}
+    />
+  )
+}
+

@@ -1,3 +1,5 @@
+import { api } from "../api"
+
 export interface FieldSchema {
   id: string
   label: string
@@ -7,20 +9,20 @@ export interface FieldSchema {
   oauthUrl?: string
 }
 
-
 export async function getMarketplaceFields(
   marketplaceId: string
 ): Promise<FieldSchema[]> {
+
   const [labelsRes, typesRes] = await Promise.all([
-    fetch(`http://localhost:4000/api/fields/${marketplaceId}/labels`),
-    fetch(`http://localhost:4000/api/field-types`),
-  ])
+    api.get(`/fields/${marketplaceId}/labels`),
+    api.get(`/field-types`)
+  ]);
 
-  if (!labelsRes.ok) throw new Error("Erro ao buscar labels")
-  if (!typesRes.ok) throw new Error("Erro ao buscar tipos")
+  if (!labelsRes.data) throw new Error("Erro ao buscar labels")
+  if (!typesRes.data) throw new Error("Erro ao buscar tipos")
 
-  const labelsData = await labelsRes.json()
-  const typesData = await typesRes.json()
+  const labelsData = await labelsRes.data
+  const typesData = await typesRes.data
 
   return labelsData.labels.map((label: any) => {
     const fieldType = typesData.find(
@@ -29,6 +31,7 @@ export async function getMarketplaceFields(
 
     return {
       id: label.id,
+      name: label.name,
       label: label.label,
       type: fieldType?.type ?? "text",
       options: fieldType?.options,

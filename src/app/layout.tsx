@@ -1,6 +1,7 @@
 "use client"
 
 import StyledComponentsRegistry from "@/lib/registry"
+import { FormProvider } from "@/app/contexts/FormContext"
 
 export default function RootLayout({
   children,
@@ -11,7 +12,9 @@ export default function RootLayout({
     <html lang="pt-BR">
       <body>
         <StyledComponentsRegistry>
-          {children}
+          <FormProvider>
+            {children}
+          </FormProvider>
         </StyledComponentsRegistry>
       </body>
     </html>

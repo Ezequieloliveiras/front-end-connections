@@ -1,4 +1,4 @@
-import styled from "styled-components";
+import styled from "styled-components"
 
 export const Container = styled.div`
   padding: 10px 24px;
@@ -8,14 +8,14 @@ export const Container = styled.div`
   background: #f9fafb;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-`;
+`
 
 export const Title = styled.h1`
   font-size: 28px;
   font-weight: 700;
   margin-bottom: 32px;
   color: #111827;
-`;
+`
 
 export const FieldGroup = styled.div`
   margin-bottom: 20px;
@@ -42,7 +42,7 @@ export const FieldGroup = styled.div`
       box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
   }
-`;
+`
 
 export const Button = styled.button<{ variant?: "primary" | "secondary" }>`
   padding: 12px 20px;
@@ -65,10 +65,10 @@ export const Button = styled.button<{ variant?: "primary" | "secondary" }>`
     background: #9ca3af;
     cursor: not-allowed;
   }
-`;
+`
 
 export const Status = styled.div`
   font-size: 14px;
   color: #374151;
   margin-top: 12px;
-`;
+`

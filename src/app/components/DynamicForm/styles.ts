@@ -1,4 +1,3 @@
-// components/DynamicForm/styles.ts
 import styled from "styled-components"
 
 export const Container = styled.div`
@@ -64,4 +63,4 @@ export const Button = styled.button<{ variant?: "primary" | "secondary" }>`
     background: #9ca3af;
     cursor: not-allowed;
   }
-`;
+`

@@ -1,5 +1,4 @@
 import MeliSettings from "./meli/Settings"
-//import ShopeeSettings from "./shopee/Settings"
 
 export const MARKETPLACE_REGISTRY = {
   meli: {
