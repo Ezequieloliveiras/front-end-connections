@@ -1,11 +1,11 @@
 import styled from "styled-components"
 
-export const SidebarContainer = styled.div<{ collapsed: boolean }>`
+export const SidebarContainer = styled.div<{ $collapsed: boolean }>`
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
-  width: ${({ collapsed }) => (collapsed ? "72px" : "220px")};
+  width: ${({ $collapsed }) => ($collapsed ? "72px" : "220px")};
   background: #ffffff;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
   display: flex;

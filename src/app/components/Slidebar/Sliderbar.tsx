@@ -2,6 +2,7 @@
 
 import { FaHome, FaChartLine, FaCog, FaUser } from "react-icons/fa"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import { ToggleButton, Menu, MenuItemContainer, SidebarContainer } from "./styles"
 
@@ -9,26 +10,32 @@ import { ToggleButton, Menu, MenuItemContainer, SidebarContainer } from "./style
 interface MenuItem {
   label: string
   icon: React.ReactNode
+  path: string
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Dashboard", icon: <FaHome /> },
-  { label: "Previsões", icon: <FaChartLine /> },
-  { label: "Usuários", icon: <FaUser /> },
-  { label: "Configurações", icon: <FaCog /> },
+  { label: "Dashboard", icon: <FaHome />, path: "/home" },
+  { label: "Previsões", icon: <FaChartLine />, path: "/predictions" },
+  { label: "Usuários", icon: <FaUser />, path: "/users" },
+  { label: "Configurações", icon: <FaCog />, path: "/config" },
 ]
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
+  const router = useRouter()
 
   return (
-    <SidebarContainer collapsed={collapsed}>
+    <SidebarContainer $collapsed={collapsed}>
       <ToggleButton onClick={() => setCollapsed(!collapsed)}>
         {collapsed ? "Expand" : "Collapse"}
       </ToggleButton>
       <Menu>
         {menuItems.map((item) => (
-          <MenuItemContainer key={item.label} $collapsed={collapsed}>
+          <MenuItemContainer
+            key={item.path} // chave única
+            $collapsed={collapsed}
+            onClick={() => router.push(item.path)}
+          >
             {item.icon}
             <span>{item.label}</span>
           </MenuItemContainer>

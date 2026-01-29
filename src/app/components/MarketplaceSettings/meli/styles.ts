@@ -1,0 +1,74 @@
+import styled from "styled-components";
+
+export const Container = styled.div`
+  padding: 10px 24px;
+  max-width: 650px;
+  margin: 0 auto;
+  font-family: "Inter", sans-serif;
+  background: #f9fafb;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+`;
+
+export const Title = styled.h1`
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 32px;
+  color: #111827;
+`;
+
+export const FieldGroup = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+
+  label {
+    font-size: 14px;
+    color: #374151;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  input {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+  }
+`;
+
+export const Button = styled.button<{ variant?: "primary" | "secondary" }>`
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  margin-bottom: 16px;
+  transition: all 0.2s;
+  background: ${({ variant }) => (variant === "secondary" ? "#e5e7eb" : "#6366f1")};
+  color: ${({ variant }) => (variant === "secondary" ? "#111827" : "#ffffff")};
+
+  &:hover {
+    background: ${({ variant }) => (variant === "secondary" ? "#d1d5db" : "#4f46e5")};
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+`;
+
+export const Status = styled.div`
+  font-size: 14px;
+  color: #374151;
+  margin-top: 12px;
+`;
