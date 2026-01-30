@@ -5,7 +5,6 @@ import { FieldSchema } from "./types"
 import { InputField } from "./_components/InputField/InputField"
 import { ButtonField } from "./_components/ButtonField/ButtonField"
 import { FieldGroup, Container } from "./styles"
-import { LiveStatus } from "./_components/Status/Status"
 import { useFormContext } from "@/app/contexts/FormContext"
 import { getOAuthByMarketplace } from "@/app/services/meli/meliService"
 import { AuthorizationLink } from "./_components/AuthorizationLink/AuthorizationLink"
@@ -14,13 +13,11 @@ interface Props {
   fields: FieldSchema[]
   marketplaceId: "meli" | "shopee"
   clientId: string
-  status?: string
 }
 
 export function DynamicForm({
   fields,
   marketplaceId,
-  status,
 }: Props) {
   const { formData, setField, setManyFields, setUrl, url } = useFormContext()
 
@@ -78,15 +75,6 @@ export function DynamicForm({
               </FieldGroup>
             )
           }
-
-          if (field.type === "status") {
-            return (
-              <FieldGroup key={field.id}>
-                <LiveStatus formData={formData} status={status ?? ""} />
-              </FieldGroup>
-            )
-          }
-
           return null
         })}
       </form>

@@ -1,4 +1,3 @@
-// components/DynamicForm/styles.ts
 import styled from "styled-components"
 
 export const Button = styled.button<{ variant?: "primary" | "secondary" }>`

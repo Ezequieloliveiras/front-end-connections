@@ -1,11 +1,11 @@
 import styled from "styled-components"
 
 export const Container = styled.div`
-  padding: 10px 24px;
+  padding: 24px 24px;
   max-width: 650px;
   margin: 0 auto;
   font-family: "Inter", sans-serif;
-  background: #f9fafb;
+  background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 `;

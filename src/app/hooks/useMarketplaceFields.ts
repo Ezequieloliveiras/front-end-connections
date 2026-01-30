@@ -14,8 +14,8 @@ export function useMarketplaceFields(marketplaceId: string) {
     async function load() {
       try {
         setLoading(true)
-        const data = await getMarketplaceFields(marketplaceId);
-        setFields(data as FieldSchema<Marketplace>[]);
+        const data = await getMarketplaceFields(marketplaceId)
+        setFields(data as FieldSchema<Marketplace>[])
       } catch (err) {
         setError("Erro ao carregar campos")
       } finally {
