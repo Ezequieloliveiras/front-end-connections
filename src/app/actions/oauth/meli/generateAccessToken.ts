@@ -1,5 +1,5 @@
-import axios from "axios"
 import { OAuthAction } from "../types"
+import { generateTokenApi } from "@/app/services/meli/meliService"
 
 export const meliGenerateAccessToken: OAuthAction = async (
   {
@@ -18,32 +18,23 @@ export const meliGenerateAccessToken: OAuthAction = async (
     return
   }
 
-  const body = new URLSearchParams({
+  const body = {
     grant_type: "authorization_code",
     client_id,
     client_secret,
     code: authorization_code,
-    redirect_uri,
-  })
+    redirect_uri
+  }
 
-  const res = await axios.post("https://api.mercadolibre.com/oauth/token", {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  })
-
-  const data = await res.data
-
-  console.log("TOKEN RESPONSE", data)
+  const res = await generateTokenApi(body)
 
   // devolve pro React atualizar
   helpers?.setManyFields?.({
-    access_token: data.access_token,
-    refresh_token: data.refresh_token,
-    expires_in: data.expires_in,
-    token_type: data.token_type,
-    scope: data.scope,
-    user_id: data.user_id,
+    access_token: res.access_token,
+    refresh_token: res.refresh_token,
+    expires_in: res.expires_in,
+    token_type: res.token_type,
+    scope: res.scope,
+    user_id: res.user_id,
   })
 }

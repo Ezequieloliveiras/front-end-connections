@@ -11,3 +11,19 @@ export async function getOAuthByMarketplace(
   const { data } = await api.get(`/meli/${marketplaceId}/client/${clientId}`)
   return data
 }
+
+export async function generateTokenApi(payload: Record<string, any>) {
+  const { data } = await api.post("/meli/generate/token", payload)
+  return data
+}
+
+export async function renewTokenApi(payload: Record<string, any>) {
+  const { data } = await api.post("/meli/renew/token", payload)
+  return data
+}
+
+export async function authorizationApi(payload: Record<string, any>) {
+  console.log(payload)
+  const { data } = await api.post("/meli/authorization", payload)
+  return data
+}

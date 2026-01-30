@@ -1,10 +1,10 @@
-import axios from "axios"
+import { generateTokenApi } from "@/app/services/meli/meliService"
 
 interface GenerateTokenParams {
-    clientId: string
-    clientSecret: string
-    code: string
-    redirectUri: string
+  clientId: string
+  clientSecret: string
+  code: string
+  redirectUri: string
 }
 
 export async function generateToken({
@@ -20,10 +20,8 @@ export async function generateToken({
   params.append("code", code)
   params.append("redirect_uri", redirectUri)
 
-  const res = await axios.post(
-    "https://api.mercadolibre.com/oauth/token",
-    params
-  )
+  const response = await generateTokenApi(params)
+  console.log('FRONT', response.data)
 
-  return res.data
+  return response.data
 }

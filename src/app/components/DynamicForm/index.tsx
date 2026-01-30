@@ -20,13 +20,14 @@ interface Props {
 export function DynamicForm({
   fields,
   marketplaceId,
-  clientId,
   onSubmit,
   status,
 }: Props) {
   const { formData, setField, setManyFields } = useFormContext()
 
   useEffect(() => {
+    const clientId = '8913040778729826'
+    //console.log('xxxxx', clientId)
     if (!clientId) return
 
     async function load() {

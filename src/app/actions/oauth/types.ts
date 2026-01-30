@@ -8,6 +8,7 @@ export type OAuthContext = {
   refresh_token?: string
   oauth?: string
   oauthUrl?: string
+  access_token?: string
 }
 
 export type OAuthHelpers = {

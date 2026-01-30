@@ -1,30 +1,26 @@
 import { OAuthAction } from "../types"
-import { saveOAuthOnBackend } from "@/app/services/meli/meliService"
+import { renewTokenApi, saveOAuthOnBackend } from "@/app/services/meli/meliService"
 
 export const meliRenewToken: OAuthAction = async (
   {
     client_id,
     client_secret,
     refresh_token,
+    access_token
   },
   helpers
 ) => {
   if (!client_id || !client_secret || !refresh_token) return
 
-  const body = new URLSearchParams({
+  const body = {
     grant_type: "refresh_token",
     client_id,
     client_secret,
     refresh_token,
-  })
+    access_token,
+  }
 
-  const res = await fetch("https://api.mercadolibre.com/oauth/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body,
-  })
+  const res = await renewTokenApi(body)
 
   if (!res.ok) throw new Error("Erro ao renovar token")
 

@@ -13,7 +13,7 @@ export default function MeliSettings() {
   const handleSubmit = async (data: Record<string, any>) => {
     try {
       setStatus("Gerando token...")
-
+      
       await generateToken({
         clientId: data.clientId,
         clientSecret: data.clientSecret,
