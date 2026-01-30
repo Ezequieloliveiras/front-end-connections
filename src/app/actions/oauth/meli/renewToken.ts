@@ -22,18 +22,16 @@ export const meliRenewToken: OAuthAction = async (
 
   const res = await renewTokenApi(body)
 
-  if (!res.ok) throw new Error("Erro ao renovar token")
-
-  const data = await res.json()
+  if (!res) throw new Error("Erro ao renovar token")
 
   const payload = {
     client_id,
     client_secret,
-    refresh_token: data.refresh_token,
-    access_token: data.access_token,
-    expires_in: data.expires_in,
-    token_type: data.token_type,
-    scope: data.scope,
+    refresh_token: res.refresh_token,
+    access_token: res.access_token,
+    expires_in: res.expires_in,
+    token_type: res.token_type,
+    scope: res.scope,
   }
 
   // atualiza o form
