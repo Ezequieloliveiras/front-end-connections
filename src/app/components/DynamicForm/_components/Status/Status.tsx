@@ -1,4 +1,3 @@
-import styled from "styled-components"
 import { Badge } from "./styles"
 
 interface StatusProps {

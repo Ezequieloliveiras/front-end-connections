@@ -23,7 +23,6 @@ export async function renewTokenApi(payload: Record<string, any>) {
 }
 
 export async function authorizationApi(payload: Record<string, any>) {
-  console.log(payload)
   const { data } = await api.post("/meli/authorization", payload)
   return data
 }

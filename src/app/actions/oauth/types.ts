@@ -9,10 +9,12 @@ export type OAuthContext = {
   oauth?: string
   oauthUrl?: string
   access_token?: string
+  url?: string
 }
 
 export type OAuthHelpers = {
   setManyFields?: (data: Record<string, any>) => void
+  setUrl?: (url: string) => void
 }
 
 export type OAuthAction = (

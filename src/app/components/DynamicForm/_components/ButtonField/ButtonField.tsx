@@ -17,8 +17,8 @@ export function ButtonField<M extends Marketplace>({
   marketplaceId,
   values,
 }: Props<M>) {
-  
-  const { setManyFields } = useFormContext()
+
+  const { setManyFields, setUrl } = useFormContext()
 
   const handleClick = async () => {
     if (!field.action) {
@@ -33,7 +33,7 @@ export function ButtonField<M extends Marketplace>({
       return
     }
 
-    await action(values, { setManyFields })
+    await action(values, { setManyFields, setUrl })
   }
 
   return (

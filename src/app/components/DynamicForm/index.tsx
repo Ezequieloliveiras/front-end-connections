@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from "react"
+import React, { useEffect } from "react"
 import { FieldSchema } from "./types"
 import { InputField } from "./_components/InputField/InputField"
 import { ButtonField } from "./_components/ButtonField/ButtonField"
@@ -8,26 +8,25 @@ import { FieldGroup, Container } from "./styles"
 import { LiveStatus } from "./_components/Status/Status"
 import { useFormContext } from "@/app/contexts/FormContext"
 import { getOAuthByMarketplace } from "@/app/services/meli/meliService"
+import { AuthorizationLink } from "./_components/AuthorizationLink/AuthorizationLink"
 
 interface Props {
   fields: FieldSchema[]
   marketplaceId: "meli" | "shopee"
   clientId: string
-  onSubmit: (data: Record<string, any>) => void
   status?: string
 }
 
 export function DynamicForm({
   fields,
   marketplaceId,
-  onSubmit,
   status,
 }: Props) {
-  const { formData, setField, setManyFields } = useFormContext()
+  const { formData, setField, setManyFields, setUrl, url } = useFormContext()
 
   useEffect(() => {
     const clientId = '8913040778729826'
-    //console.log('xxxxx', clientId)
+
     if (!clientId) return
 
     async function load() {
@@ -46,22 +45,24 @@ export function DynamicForm({
 
   return (
     <Container>
-      <form
-        onSubmit={e => {
-          e.preventDefault()
-          onSubmit(formData)
-        }}
-      >
+      <form>
         {fields.map(field => {
           if (field.type === "button") {
             return (
-              <FieldGroup key={field.id}>
-                <ButtonField
-                  field={field}
-                  marketplaceId={marketplaceId}
-                  values={formData}
-                />
-              </FieldGroup>
+              <React.Fragment key={field.id}>
+                <FieldGroup key={field.id}>
+                  <ButtonField
+                    field={field}
+                    marketplaceId={marketplaceId}
+                    values={formData}
+                  />
+                </FieldGroup>
+
+                {url && field.name === "authorization" && (
+                  <AuthorizationLink url={url} setUrl={setUrl} />
+                )}
+
+              </React.Fragment>
             )
           }
 

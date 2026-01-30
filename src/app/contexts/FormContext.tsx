@@ -8,12 +8,15 @@ interface FormContextType {
   formData: FormData
   setField: (name: string, value: any) => void
   setManyFields: (data: Record<string, any>) => void
+  url: string
+  setUrl: (url: string) => void
 }
 
 const FormContext = createContext<FormContextType | null>(null)
 
 export function FormProvider({ children }: { children: React.ReactNode }) {
   const [formData, setFormData] = useState<FormData>({})
+  const [url, setUrl] = useState('')
 
   const setField = (name: string, value: any) => {
     setFormData(prev => ({ ...prev, [name]: value }))
@@ -25,7 +28,7 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <FormContext.Provider
-      value={{ formData, setField, setManyFields }}
+      value={{ formData, setField, setManyFields, url, setUrl }}
     >
       {children}
     </FormContext.Provider>
