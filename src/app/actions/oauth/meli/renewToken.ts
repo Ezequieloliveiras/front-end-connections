@@ -5,6 +5,8 @@ export const meliRenewToken: OAuthAction = async (
   {
     client_id,
     client_secret,
+    redirect_uri,
+    user_id,
     refresh_token,
     access_token
   },
@@ -16,6 +18,8 @@ export const meliRenewToken: OAuthAction = async (
     grant_type: "refresh_token",
     client_id,
     client_secret,
+    redirect_uri,
+    user_id,
     refresh_token,
     access_token,
   }
@@ -27,6 +31,8 @@ export const meliRenewToken: OAuthAction = async (
   const payload = {
     client_id,
     client_secret,
+    redirect_uri,
+    user_id: user_id,
     refresh_token: res.refresh_token,
     access_token: res.access_token,
     expires_in: res.expires_in,

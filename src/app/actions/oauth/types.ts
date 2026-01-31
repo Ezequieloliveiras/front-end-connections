@@ -3,6 +3,7 @@ export type Marketplace = "meli" | "shopee"
 export type OAuthContext = {
   client_id?: string
   client_secret?: string
+  user_id?: string
   redirect_uri?: string
   authorization_code?: string
   refresh_token?: string
@@ -15,6 +16,8 @@ export type OAuthContext = {
 export type OAuthHelpers = {
   setManyFields?: (data: Record<string, any>) => void
   setUrl?: (url: string) => void
+  redirect_uri?: OAuthContext["redirect_uri"]
+  user_id?: OAuthContext["user_id"]
 }
 
 export type OAuthAction = (

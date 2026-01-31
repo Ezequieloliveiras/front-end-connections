@@ -21,7 +21,7 @@ export interface FieldSchema<M extends Marketplace = Marketplace> {
   name: string
   label?: string
   type: FieldType
-
+  placeholder?: string
   action?: OAuthActionKeysByMarketplace[M]
   submit?: boolean
   status?: string

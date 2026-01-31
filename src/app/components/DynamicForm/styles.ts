@@ -1,7 +1,10 @@
 import styled from "styled-components"
 
 export const Container = styled.div`
-  padding: 24px 24px;
+  padding-top: 35px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 5px;
   max-width: 650px;
   margin: 0 auto;
   font-family: "Inter", sans-serif;

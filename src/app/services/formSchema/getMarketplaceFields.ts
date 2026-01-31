@@ -33,6 +33,7 @@ export async function getMarketplaceFields(
       id: label.id,
       name: label.name,
       label: label.label,
+      placeholder: label.placeholder,
       type: fieldType?.type ?? "text",
       options: fieldType?.options,
       action: label.action,

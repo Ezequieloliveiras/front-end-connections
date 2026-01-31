@@ -19,6 +19,7 @@ export function InputField({ field, value, onChange }: Props) {
     <input
       name={field.name}
       value={value ?? ""}
+      placeholder={field.placeholder }
       onChange={e => onChange(field.name, e.target.value)}
     />
   )

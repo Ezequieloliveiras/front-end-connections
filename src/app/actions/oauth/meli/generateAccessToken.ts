@@ -7,6 +7,7 @@ export const meliGenerateAccessToken: OAuthAction = async (
     client_secret,
     authorization_code,
     redirect_uri,
+    user_id
   } = {},
   helpers?: {
     setManyFields?: (data: Record<string, any>) => void
@@ -23,7 +24,8 @@ export const meliGenerateAccessToken: OAuthAction = async (
     client_id,
     client_secret,
     code: authorization_code,
-    redirect_uri
+    redirect_uri,
+    user_id
   }
 
   const res = await generateTokenApi(body)
