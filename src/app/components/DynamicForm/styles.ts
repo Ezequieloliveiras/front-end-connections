@@ -1,17 +1,31 @@
 import styled from "styled-components"
 
 export const Container = styled.div`
-  padding-top: 35px;
-  padding-left: 24px;
-  padding-right: 24px;
-  padding-bottom: 5px;
+  padding: 32px 32px;
   max-width: 650px;
   margin: 0 auto;
+
+  max-height: calc(100vh - 120px); /* não estoura a tela */
+  overflow-y: auto;
+
   font-family: "Inter", sans-serif;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-`;
+
+  /* scroll moderno */
+  scrollbar-width: thin;
+  scrollbar-color: #c7d2fe transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c7d2fe;
+    border-radius: 999px;
+  }
+`
 
 export const FieldGroup = styled.div`
   margin-bottom: 20px;

@@ -13,7 +13,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Conteúdo */}
-        <main style={{ flex: 1 }}>
+        <main style={{ flex: 1, padding: 24 }}>
           {children}
         </main>
       </div>
