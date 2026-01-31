@@ -1,6 +1,6 @@
 "use client"
 
-import { FaHome, FaChartLine, FaCog, FaUser } from "react-icons/fa"
+import { FaHome, FaChartLine, FaCog, FaUser, FaPlug } from "react-icons/fa"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -17,7 +17,7 @@ const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: <FaHome />, path: "/home" },
   { label: "Previsões", icon: <FaChartLine />, path: "/predictions" },
   { label: "Usuários", icon: <FaUser />, path: "/users" },
-  { label: "Configurações", icon: <FaCog />, path: "/config" },
+  { label: "Integrações", icon: <FaPlug />, path: "/integrations" },
 ]
 
 export default function Sidebar() {

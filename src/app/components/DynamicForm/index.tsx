@@ -8,6 +8,7 @@ import { FieldGroup, Container } from "./styles"
 import { useFormContext } from "@/app/contexts/FormContext"
 import { getOAuthByMarketplace } from "@/app/services/meli/meliService"
 import { AuthorizationLink } from "./_components/AuthorizationLink/AuthorizationLink"
+import { InfoField } from "./_components/info/infoField"
 
 interface Props {
   fields: FieldSchema[]
@@ -72,9 +73,19 @@ export function DynamicForm({
                   value={formData[field.name]}
                   onChange={(id, value) => setField(id, value)}
                 />
+                <span>{field.info}</span>
               </FieldGroup>
             )
           }
+
+          if (field.type === "info") {
+            return (
+              <FieldGroup key={field.id}>
+                <InfoField field={field} />
+              </FieldGroup>
+            )
+          }
+
           return null
         })}
       </form>

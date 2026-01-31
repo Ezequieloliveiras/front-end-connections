@@ -1,12 +1,7 @@
 'use client'
 
 import { FieldSchema } from "../../types"
-
-interface Props {
-  field: FieldSchema
-  value: any
-  onChange: (id: string, value: any) => void
-}
+import { StyledInput } from "./styles"
 
 interface Props {
   field: FieldSchema
@@ -16,12 +11,12 @@ interface Props {
 
 export function InputField({ field, value, onChange }: Props) {
   return (
-    <input
+    <StyledInput
       name={field.name}
       value={value ?? ""}
-      placeholder={field.placeholder }
+      placeholder={field.placeholder}
+      disabled={field.disabled === true}
       onChange={e => onChange(field.name, e.target.value)}
     />
   )
 }
-

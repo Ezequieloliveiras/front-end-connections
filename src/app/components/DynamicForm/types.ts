@@ -1,5 +1,6 @@
 import { OAuthActionKeysByMarketplace } from "@/app/actions/oauth/types"
 import { Marketplace } from "@/app/actions/oauth/types"
+import { info } from "console"
 
 export type FieldType =
   | "text"
@@ -13,6 +14,7 @@ export type FieldType =
   | "date"
   | "time"
   | "status"
+  | "info"
 
 
 
@@ -25,6 +27,7 @@ export interface FieldSchema<M extends Marketplace = Marketplace> {
   action?: OAuthActionKeysByMarketplace[M]
   submit?: boolean
   status?: string
-
+  disabled?: boolean
   options?: { value: string; label: string }[]
+  info?: string
 }

@@ -5,7 +5,7 @@ export const meliAuthorization: OAuthAction = async (
   { client_id, redirect_uri, user_id } = {},
   helpers
 ) => {
-  if (!client_id || !redirect_uri || !user_id) {
+  if (!client_id || !redirect_uri) {
     console.warn("client_id ou redirect_uri ausentes")
     return
   }

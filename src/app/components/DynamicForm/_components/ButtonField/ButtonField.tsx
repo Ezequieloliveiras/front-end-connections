@@ -32,18 +32,24 @@ export function ButtonField<M extends Marketplace>({
       console.warn("Ação não encontrada", marketplaceId, field.name)
       return
     }
+
     const redirect_uri = url
-    const user_id = values.user_id
-    
-    await action(values, { setManyFields, setUrl, redirect_uri, user_id})
+    const user_id = "8913040778729826"
+
+    await action(values, { setManyFields, setUrl, redirect_uri, user_id })
   }
+
+  const variant =
+    field.label === "Salvar / Renovar Token" ? "secondary" : "primary"
 
   return (
     <Button
       type={field.submit ? "submit" : "button"}
       onClick={handleClick}
+      variant={variant}
     >
       {field.label}
     </Button>
   )
 }
+
