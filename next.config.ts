@@ -1,11 +1,18 @@
 // next.config.js
-module.exports = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  compiler: {
+    styledComponents: true,
+  },
+
   async rewrites() {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:4000/:path*", // seu backend
+        destination: "http://localhost:4000/:path*",
       },
     ]
   },
 }
+
+module.exports = nextConfig

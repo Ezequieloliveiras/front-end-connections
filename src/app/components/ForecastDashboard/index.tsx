@@ -40,6 +40,10 @@ import {
   Badge,
   EmptyState,
 } from "./styles"
+import { KPIs } from "./_components/KPIs/KPIs"
+import { ClientsDonut } from "./_components/ClientsDonut/ClientsDonut"
+import { PlannedVsRealized } from "./_components/PlannedVsRealized/PlannedVsRealized"
+import { DetailsTable } from "./_components/DetailsTable/DetailsTable"
 
 type PeriodPreset = "7" | "30" | "90" | "custom"
 
@@ -228,125 +232,16 @@ export default function ForecastDashboard() {
       {data && (
         <ContentGrid>
           {/* KPIs */}
-          <Card style={{ gridColumn: "1 / -1" }}>
-            <CardHeader>
-              <div>
-                <CardTitle>{data.productName}</CardTitle>
-                <CardHint>
-                  Período: <b>{data.days} dias</b> • Confiança: <b>{Math.round(data.confidence * 100)}%</b> • Tendência:{" "}
-                  <Badge $tone={trendTone}>{trendText}</Badge>
-                </CardHint>
-              </div>
-            </CardHeader>
-
-            <KpiRow>
-              <KpiCard>
-                <KpiLabel>Previsão (Qtd.)</KpiLabel>
-                <KpiValue>{data.forecastQty.toLocaleString("pt-BR")}</KpiValue>
-                <KpiSub>Estimativa para {data.days} dias</KpiSub>
-              </KpiCard>
-
-              <KpiCard>
-                <KpiLabel>Planejado</KpiLabel>
-                <KpiValue>{data.plannedQty.toLocaleString("pt-BR")}</KpiValue>
-                <KpiSub>Meta definida</KpiSub>
-              </KpiCard>
-
-              <KpiCard>
-                <KpiLabel>Realizado</KpiLabel>
-                <KpiValue>{data.realizedQty.toLocaleString("pt-BR")}</KpiValue>
-                <KpiSub>Último consolidado</KpiSub>
-              </KpiCard>
-
-              <KpiCard>
-                <KpiLabel>Gap (Planejado - Realizado)</KpiLabel>
-                <KpiValue>{(data.plannedQty - data.realizedQty).toLocaleString("pt-BR")}</KpiValue>
-                <KpiSub>Diferença atual</KpiSub>
-              </KpiCard>
-            </KpiRow>
-          </Card>
+          <KPIs data={data} />
 
           {/* Planejado x Realizado (barras simples) */}
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>Planejado x Realizado</CardTitle>
-                <CardHint>Comparativo rápido por canal (exemplo)</CardHint>
-              </div>
-            </CardHeader>
-
-            <Divider />
-
-            <ChartWrap>
-              <BarList>
-                {data.topChannels.map((c) => (
-                  <BarItem key={c.name}>
-                    <BarLabel>{c.name}</BarLabel>
-                    <BarTrack>
-                      <BarFill style={{ width: `${Math.round((c.value / maxChannel) * 100)}%` }} />
-                    </BarTrack>
-                    <span style={{ width: 64, textAlign: "right" }}>
-                      {c.value.toLocaleString("pt-BR")}
-                    </span>
-                  </BarItem>
-                ))}
-              </BarList>
-            </ChartWrap>
-          </Card>
+         <PlannedVsRealized data={data} />
 
           {/* Clientes atingindo o planejado (donut) */}
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>Clientes atingindo o planejado</CardTitle>
-                <CardHint>Status da meta no período</CardHint>
-              </div>
-            </CardHeader>
-
-            <Divider />
-
-            <DonutWrap>
-              <DonutRing $percent={donutPercent} />
-              <DonutCenter>
-                <DonutValue>{Math.round(donutPercent * 100)}%</DonutValue>
-                <DonutLabel>Atingiram</DonutLabel>
-              </DonutCenter>
-            </DonutWrap>
-
-            <div style={{ marginTop: 14, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <Badge $tone="good">Atingiram: {data.clients.hit.toLocaleString("pt-BR")}</Badge>
-              <Badge $tone="neutral">Não atingiram: {data.clients.notHit.toLocaleString("pt-BR")}</Badge>
-            </div>
-          </Card>
+          <ClientsDonut data={data} />
 
           {/* Tabela (detalhes) */}
-          <Card style={{ gridColumn: "1 / -1" }}>
-            <CardHeader>
-              <div>
-                <CardTitle>Detalhamento (amostra)</CardTitle>
-                <CardHint>Últimos dias (exemplo). Aqui você pluga sua série real.</CardHint>
-              </div>
-            </CardHeader>
-
-            <Divider />
-
-            <Table>
-              <thead>
-                <Tr>
-                  <Th>Data</Th>
-                  <Th style={{ textAlign: "right" }}>Qtd.</Th>
-                </Tr>
-              </thead>
-              <tbody>
-                {data.daily.map(d => (
-                  <Tr key={d.date}>
-                    <Td>{d.date}</Td>
-                    <Td style={{ textAlign: "right" }}>{d.qty.toLocaleString("pt-BR")}</Td>
-                  </Tr>
-                ))}
-              </tbody>
-            </Table>
-          </Card>
+          <DetailsTable data={data} />
         </ContentGrid>
       )}
     </Page>
