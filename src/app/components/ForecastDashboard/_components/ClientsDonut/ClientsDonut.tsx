@@ -1,4 +1,3 @@
-import { ForecastResponse } from "../../types"
 import {
     Card,
     CardHeader,
@@ -17,9 +16,39 @@ interface Props {
     data: ForecastResponse
 }
 
-export function ClientsDonut({ data }: Props) {
-    const total = data.clients.hit + data.clients.notHit
-    const percent = total ? data.clients.hit / total : 0
+export type ForecastResponse = {
+  topChannels: {
+    name: string
+    value: number
+  }[]
+
+  clients: {
+    hit: number
+    notHit: number
+  }
+}
+
+
+ const mockForecast: ForecastResponse = {
+  topChannels: [
+    { name: "Mercado Livre", value: 1280 },
+    { name: "Shopee", value: 860 },
+    { name: "Amazon", value: 540 },
+    { name: "Magalu", value: 310 },
+    { name: "Loja Física", value: 150 },
+  ],
+
+  clients: {
+    hit: 74,
+    notHit: 26,
+  },
+}
+
+
+
+export function ClientsDonut() {
+    const total = mockForecast.clients.hit + mockForecast.clients.notHit
+    const percent = total ? mockForecast.clients.hit / total : 0
     const donutPercent = Math.min(1, Math.max(0, percent))
 
     return (
@@ -43,8 +72,8 @@ export function ClientsDonut({ data }: Props) {
                 </DonutWrap>
 
                 <div style={{ marginTop: 14, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-                    <Badge $tone="good">Atingiram: {data.clients.hit.toLocaleString("pt-BR")}</Badge>
-                    <Badge $tone="neutral">Não atingiram: {data.clients.notHit.toLocaleString("pt-BR")}</Badge>
+                    <Badge $tone="good">Atingiram: {mockForecast.clients.hit.toLocaleString("pt-BR")}</Badge>
+                    <Badge $tone="neutral">Não atingiram: {mockForecast.clients.notHit.toLocaleString("pt-BR")}</Badge>
                 </div>
             </Card>
         </>

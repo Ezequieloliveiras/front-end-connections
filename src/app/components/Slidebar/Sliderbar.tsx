@@ -15,7 +15,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: "Dashboard", icon: <FaHome />, path: "/home" },
-  { label: "Previsões", icon: <FaChartLine />, path: "/predictions" },
+  { label: "Previsões", icon: <FaChartLine />, path: "/prediction" },
   { label: "Usuários", icon: <FaUser />, path: "/users" },
   { label: "Integrações", icon: <FaPlug />, path: "/integrations" },
 ]

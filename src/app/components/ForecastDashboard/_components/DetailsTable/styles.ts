@@ -56,3 +56,13 @@ export const Td = styled.td`
   padding: 12px 16px;
   color: #0f172a;
 `
+export const EmptyState = styled.div`
+  margin-top: 14px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px dashed rgba(15, 23, 42, 0.18);
+  background: rgba(2, 6, 23, 0.02);
+  color: #475569;
+  font-size: 13px;
+  text-align: center;
+`
