@@ -62,7 +62,7 @@ export function PlannedVsRealized({ entityId, productId, days }: Props) {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Planejado x Realizado</CardTitle>
+          <CardTitle>Venda por canal</CardTitle>
           <CardHint>Comparativo rápido por canal</CardHint>
         </div>
       </CardHeader>

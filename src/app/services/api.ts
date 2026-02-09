@@ -5,6 +5,7 @@ const API_URL = "http://localhost:4000/api"
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 10000, // 10s de timeout
+  withCredentials: true, // manda/recebe cookies
 })
 
 // Interceptor de request: adiciona token automaticamente

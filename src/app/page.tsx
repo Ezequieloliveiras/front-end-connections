@@ -1,10 +1,9 @@
 "use client"
 
-export default function App() {
+import Login from "./(public)/login/login"
 
+export default function App() {
   return (
-    <>
-      <h1>Login</h1>
-    </>
+   <Login />
   )
 }
