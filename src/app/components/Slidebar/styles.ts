@@ -60,4 +60,24 @@ export const MenuItemContainer = styled.li<{ $collapsed: boolean }>`
     color: #111827;
     font-weight: 500;
   }
-`;
+`
+export const LogoutContainer = styled.div<{ $collapsed: boolean }>`
+  margin-top: auto;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  color: #ef4444;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  span {
+    display: ${({ $collapsed }) => ($collapsed ? "none" : "inline")};
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.08);
+  }
+`

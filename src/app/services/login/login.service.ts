@@ -6,6 +6,6 @@ export async function login(payload: Record<string, any>) {
 }
 
 export async function logout() {
-    const { data } = await api.post("/logout")
+    const { data } = await api.post("/logout/entity")
     return data
 }

@@ -1,3 +1,4 @@
+'use client'
 import React from "react"
 import { Mail, Lock, LineChart, Boxes, ShoppingBag, Store, Globe, Sparkles, ShieldCheck } from "lucide-react"
 
