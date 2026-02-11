@@ -43,71 +43,86 @@ export function formatDateBRIntl(iso: string) {
 }
 
 export function DetailsTable({ preset, customDays, productId }: Props) {
-    const [daily, setDaily] = useState<DailyRow[]>([])
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+  const [daily, setDaily] = useState<DailyRow[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-    const days = useMemo(() => parseDays(preset, customDays), [preset, customDays])
+  const days = useMemo(() => parseDays(preset, customDays), [preset, customDays])
 
-    useEffect(() => {
-        if (!productId) return
+  useEffect(() => {
+    if (!productId) return
 
-        const fetchDaily = async () => {
-            try {
-                setLoading(true)
-                setError(null)
+    const fetchDaily = async () => {
+      try {
+        setLoading(true)
+        setError(null)
 
-                const res = await api.get<RealizedSalesResponse>("/forecast/orders/realized/daily", {
-                    params: { productId, days },
-                })
+        const res = await api.get<RealizedSalesResponse>("/forecast/orders/realized/daily", {
+          params: { productId, days },
+        })
 
-                setDaily(res.data.daily ?? [])
-            } catch (err) {
-                console.error("DetailsTable fetch error:", err)
-                setError("Erro ao buscar vendas realizadas")
-                setDaily([])
-            } finally {
-                setLoading(false)
-            }
-        }
+        setDaily(res.data.daily ?? [])
+      } catch (err) {
+        console.error("DetailsTable fetch error:", err)
+        setError("Erro ao buscar vendas realizadas")
+        setDaily([])
+      } finally {
+        setLoading(false)
+      }
+    }
 
-        fetchDaily()
-    }, [productId, days])
+    fetchDaily()
+  }, [productId, days])
 
-    return (
-        <Card style={{ gridColumn: "1 / -1" }}>
-            <CardHeader>
-                <div>
-                    <CardTitle>Detalhamento (realizado)</CardTitle>
-                    <CardHint>Vendas realizadas por dia (últimos {days} dias)</CardHint>
-                    {error && <CardHint><b>{error}</b></CardHint>}
-                </div>
-            </CardHeader>
+  return (
+    <Card style={{ gridColumn: "1 / -1", position: "relative" }}>
+      <CardHeader>
+        <div>
+          <CardTitle>Detalhamento (realizado)</CardTitle>
+          <CardHint>Vendas realizadas por dia (últimos {days} dias)</CardHint>
+          {error && <CardHint><b>{error}</b></CardHint>}
+        </div>
+      </CardHeader>
 
-            <Divider />
+      <Divider />
 
-            {loading ? (
-                <EmptyState>Carregando vendas...</EmptyState>
-            ) : daily.length === 0 ? (
-                <EmptyState>Nenhuma venda encontrada no período.</EmptyState>
-            ) : (
-                <Table>
-                    <thead>
-                        <Tr>
-                            <Th>Data</Th>
-                            <Th style={{ textAlign: "right" }}>Qtd.</Th>
-                        </Tr>
-                    </thead>
-                    <tbody>
-                        {daily.map((d) => (
-                            <Tr key={d.date}>
-                                <Td>{formatDateBRIntl(d.date)}</Td>
-                                <Td style={{ textAlign: "right" }}>{d.qty.toLocaleString("pt-BR")}</Td>
-                            </Tr>
-                        ))}
-                    </tbody>
-                </Table>
-            )}
-        </Card>
-    )
+      {/* mantém estrutura estável */}
+      {daily.length === 0 ? (
+        <EmptyState>Nenhuma venda encontrada no período.</EmptyState>
+      ) : (
+        <Table>
+          <thead>
+            <Tr>
+              <Th>Data</Th>
+              <Th style={{ textAlign: "right" }}>Qtd.</Th>
+            </Tr>
+          </thead>
+          <tbody>
+            {daily.map((d) => (
+              <Tr key={d.date}>
+                <Td>{formatDateBRIntl(d.date)}</Td>
+                <Td style={{ textAlign: "right" }}>{d.qty.toLocaleString("pt-BR")}</Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+
+      {/* overlay de loading sem trocar layout */}
+      {loading && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(255,255,255,0.65)",
+            display: "grid",
+            placeItems: "center",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <EmptyState style={{ marginTop: 0 }}>Carregando vendas...</EmptyState>
+        </div>
+      )}
+    </Card>
+  )
 }

@@ -88,7 +88,6 @@ export default function ForecastDashboard() {
     return Number(preset)
   }, [preset, customDays])
 
-
   useEffect(() => {
     if (!productId) return
 
@@ -118,26 +117,6 @@ export default function ForecastDashboard() {
       setLoading(false)
     }
   }
-
-  // const days = useMemo(() => {
-  //   if (preset === "custom") return Math.max(1, Number(customDays || 1))
-  //   return Number(preset)
-  // }, [preset, customDays])
-
-  // const donutPercent = useMemo(() => {
-  //   if (!data) return 0
-  //   const total = data.clients.hit + data.clients.notHit
-  //   if (!total) return 0
-  //   return data.clients.hit / total
-  // }, [data])
-
-  // const maxChannel = useMemo(() => {
-  //   if (!data?.topChannels?.length) return 1
-  //   return Math.max(...data.topChannels.map(c => c.value), 1)
-  // }, [data])
-
-  const trendText = data?.trend === "up" ? "Alta" : data?.trend === "down" ? "Queda" : "Estável"
-  const trendTone = data?.trend === "up" ? "good" : data?.trend === "down" ? "bad" : "neutral"
 
   return (
     <Page>
