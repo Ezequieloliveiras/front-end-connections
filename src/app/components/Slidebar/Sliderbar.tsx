@@ -28,9 +28,9 @@ export default function Sidebar() {
   async function handleLogout() {
     try {
       await logout()
-      router.push("/login")
+      router.push("/")
     } catch {
-      router.push("/login") // fallback
+      router.push("/")
     }
   }
 

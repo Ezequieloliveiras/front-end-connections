@@ -15,10 +15,9 @@ import {
 } from "./styles"
 
 interface Props {
-    preset:  number | string
-    customDays: string 
+    preset: number | string
+    customDays: string
     productId: string | undefined
-    entityId: string
 }
 
 type DailyRow = { date: string; qty: number }
@@ -43,7 +42,7 @@ export function formatDateBRIntl(iso: string) {
     }).format(date)
 }
 
-export function DetailsTable({ preset, customDays, productId, entityId }: Props) {
+export function DetailsTable({ preset, customDays, productId }: Props) {
     const [daily, setDaily] = useState<DailyRow[]>([])
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -51,7 +50,7 @@ export function DetailsTable({ preset, customDays, productId, entityId }: Props)
     const days = useMemo(() => parseDays(preset, customDays), [preset, customDays])
 
     useEffect(() => {
-        if (!entityId || !productId) return
+        if (!productId) return
 
         const fetchDaily = async () => {
             try {
@@ -59,7 +58,7 @@ export function DetailsTable({ preset, customDays, productId, entityId }: Props)
                 setError(null)
 
                 const res = await api.get<RealizedSalesResponse>("/forecast/orders/realized/daily", {
-                    params: { entityId, productId, days },
+                    params: { productId, days },
                 })
 
                 setDaily(res.data.daily ?? [])
@@ -73,7 +72,7 @@ export function DetailsTable({ preset, customDays, productId, entityId }: Props)
         }
 
         fetchDaily()
-    }, [entityId, productId, days])
+    }, [productId, days])
 
     return (
         <Card style={{ gridColumn: "1 / -1" }}>

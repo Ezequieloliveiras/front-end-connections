@@ -21,23 +21,21 @@ type Channel = {
 }
 
 interface Props {
-  entityId: string
   productId?: string
   days: number
 }
 
-export function PlannedVsRealized({ entityId, productId, days }: Props) {
+export function PlannedVsRealized({ productId, days }: Props) {
   const [channels, setChannels] = useState<Channel[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (!entityId || !days) return
+    if (!days) return
 
     const fetch = async () => {
       try {
         setLoading(true)
         const res = await getTopChannels({
-          entityId,
           productId,
           days,
         })
@@ -51,7 +49,7 @@ export function PlannedVsRealized({ entityId, productId, days }: Props) {
     }
 
     fetch()
-  }, [entityId, productId, days])
+  }, [productId, days])
 
   const maxChannel = useMemo(
     () => Math.max(...channels.map(c => c.value), 1),

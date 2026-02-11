@@ -23,13 +23,10 @@ export function DynamicForm({
   const { formData, setField, setManyFields, setUrl, url } = useFormContext()
 
   useEffect(() => {
-    const clientId = '8913040778729826'
-
-    if (!clientId) return
 
     async function load() {
       try {
-        const data = await getOAuthByMarketplace(marketplaceId, clientId)
+        const data = await getOAuthByMarketplace(marketplaceId)
         if (data) {
           setManyFields(data)
         }

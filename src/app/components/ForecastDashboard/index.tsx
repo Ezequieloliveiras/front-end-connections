@@ -62,15 +62,10 @@ export default function ForecastDashboard() {
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const entityId = "697f8d6228e99ad17b44c353"
-
-
   useEffect(() => {
-    if (!entityId) return
-
     const fetchProducts = async () => {
       try {
-        const res: ProductApi[] = await getAllProductsByEntity(entityId)
+        const res: ProductApi[] = await getAllProductsByEntity()
 
         const options = res.map(p => ({ id: p._id, name: p.name }))
         setProducts(options)
@@ -86,7 +81,7 @@ export default function ForecastDashboard() {
     }
 
     fetchProducts()
-  }, [entityId])
+  }, [])
 
   const days = useMemo(() => {
     if (preset === "custom") return Math.max(1, Number(customDays || 1))
@@ -95,11 +90,11 @@ export default function ForecastDashboard() {
 
 
   useEffect(() => {
-    if (!entityId || !productId) return
+    if (!productId) return
 
     const fetchProductToAnalyze = async () => {
       try {
-        const res = await getForecastByDayCustom(entityId, productId, days)
+        const res = await getForecastByDayCustom(productId, days)
         setData(res)
       } catch (err) {
         console.log('err', err)
@@ -111,11 +106,11 @@ export default function ForecastDashboard() {
 
 
   const handleFetch = async () => {
-    if (!entityId || !productId) return
+    if (!productId) return
 
     try {
       setLoading(true)
-      const res = await getForecastByDayCustom(entityId, productId, days)
+      const res = await getForecastByDayCustom(productId, days)
       setData(res)
     } catch (err) {
       setError("Erro ao buscar previsão")
@@ -215,13 +210,13 @@ export default function ForecastDashboard() {
           {/* KPIs */}
           <KPIs data={data} />
 
-          <PlannedVsRealized entityId={entityId} productId={productId} days={days} />
+          <PlannedVsRealized productId={productId} days={days} />
 
           {/* Clientes atingindo o planejado (donut) */}
           <ClientsDonut />
 
           {/* Tabela (detalhes) */}
-          <DetailsTable preset={preset} customDays={customDays} productId={productId}  entityId={entityId} />
+          <DetailsTable preset={preset} customDays={customDays} productId={productId} />
         </ContentGrid>
       )}
     </Page>

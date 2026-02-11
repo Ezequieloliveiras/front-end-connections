@@ -5,9 +5,7 @@ export type ProductApi = {
   name: string
 }
 
-export async function getAllProductsByEntity(entityId: string): Promise<ProductApi[]> {
-  const { data } = await api.get<ProductApi[]>(`/product/list`, {
-    params: { entityId },
-  })
+export async function getAllProductsByEntity(): Promise<ProductApi[]> {
+  const { data } = await api.get<ProductApi[]>(`/product/list`)
   return data
 }

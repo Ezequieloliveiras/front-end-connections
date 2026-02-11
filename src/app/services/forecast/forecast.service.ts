@@ -7,20 +7,21 @@ export type TopChannel = {
 }
 
 export type TopChannelsResponse = {
-  entityId: string
   productId?: string | null
   days: number
   topChannels: TopChannel[]
 }
 
 
-export async function getForecastByDayCustom(entityId: string, productId: string, days: number): Promise<ForecastResponse> {
-  const res = await api.get(`/forecast/${entityId}/${productId}`, { params: { days } })
+export async function getForecastByDayCustom(productId: string, days: number): Promise<ForecastResponse> {
+  const res = await api.get(`/forecast/${productId}`, { params: { days } })
   return res.data
 }
 
-export async function getTopChannels(params: { entityId: string, days: number, productId?: string }): Promise<TopChannelsResponse> {
-  const res = await api.get("/forecast/top-channels", {
+export async function getTopChannels(params: { days: number, productId?: string }): Promise<TopChannelsResponse> {
+        console.log('xaaaaa')
+
+  const res = await api.get("/forecast/channels", {
     params,
   })
   return res.data

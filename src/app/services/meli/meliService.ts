@@ -6,9 +6,8 @@ export async function saveOAuthOnBackend(payload: Record<string, any>) {
 
 export async function getOAuthByMarketplace(
   marketplaceId: "meli" | "shopee",
-  clientId: string
 ) {
-  const { data } = await api.get(`/meli/${marketplaceId}/client/${clientId}`)
+  const { data } = await api.get(`/meli/${marketplaceId}`)
   return data
 }
 
