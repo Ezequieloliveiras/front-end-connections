@@ -1,11 +1,6 @@
-"use client"
+// app/page.tsx
+import { redirect } from "next/navigation"
 
-import Login from "./(public)/login"
-
-export default function App() {
-  return (
-   <>
-    <Login/>
-   </>
-  )
+export default function Page() {
+  redirect("/home") // ou "/login"
 }

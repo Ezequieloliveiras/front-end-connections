@@ -9,6 +9,7 @@ export type ForecastResponse = {
   productId: string
   productName: string
   days: number
+  nextDays: Array<{ date: string; qty: number }>
   forecastQty: number
   confidence: number
   trend: "up" | "down" | "stable"

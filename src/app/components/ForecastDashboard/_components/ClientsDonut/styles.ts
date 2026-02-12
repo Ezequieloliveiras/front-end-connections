@@ -80,7 +80,7 @@ export const DonutLabel = styled.div`
   color: #64748b;
 `
 
-export const Badge = styled.span<{ $tone?: "good" | "bad" | "neutral" }>`
+export const Badge = styled.span<{ $tone?: "good" | "bad" | "neutral" | "stable" }>`
   display: inline-flex;
   align-items: center;
   gap: 6px;

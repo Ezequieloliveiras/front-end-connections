@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react"
-import { api } from "@/app/services/api"
 
 import {
     Card,
@@ -13,6 +12,7 @@ import {
     Td,
     EmptyState,
 } from "./styles"
+import { getForecastByDay } from "@/app/services/forecast/forecast.service"
 
 interface Props {
     preset: number | string
@@ -21,11 +21,6 @@ interface Props {
 }
 
 type DailyRow = { date: string; qty: number }
-
-type RealizedSalesResponse = {
-    daily: DailyRow[]
-}
-
 
 function parseDays(preset: number | string, customDays: string) {
     const custom = Number(customDays)
@@ -57,11 +52,9 @@ export function DetailsTable({ preset, customDays, productId }: Props) {
         setLoading(true)
         setError(null)
 
-        const res = await api.get<RealizedSalesResponse>("/forecast/orders/realized/daily", {
-          params: { productId, days },
-        })
+        const res = await getForecastByDay(productId, days)
 
-        setDaily(res.data.daily ?? [])
+        setDaily(res.daily)
       } catch (err) {
         console.error("DetailsTable fetch error:", err)
         setError("Erro ao buscar vendas realizadas")

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 
 import { ToggleButton, Menu, MenuItemContainer, SidebarContainer, LogoutContainer } from "./styles"
 import { logout } from "@/app/services/login/login.service"
+import { api } from "@/app/services/api"
 
 
 interface MenuItem {
@@ -27,10 +28,10 @@ export default function Sidebar() {
 
   async function handleLogout() {
     try {
-      await logout()
-      router.push("/")
+      await api.post('/auth/logout')
+      window.location.href = '/login'
     } catch {
-      router.push("/")
+      router.push("/login")
     }
   }
 

@@ -99,7 +99,9 @@ export default function Login({
 
       await login({ email, password })
 
-      router.push("/home")
+      router.replace("/home")
+      router.refresh()
+
     } catch (err: any) {
 
       const message =

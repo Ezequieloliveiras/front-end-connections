@@ -19,10 +19,16 @@ export async function getForecastByDayCustom(productId: string, days: number): P
 }
 
 export async function getTopChannels(params: { days: number, productId?: string }): Promise<TopChannelsResponse> {
-        console.log('xaaaaa')
-
   const res = await api.get("/forecast/channels", {
     params,
   })
+  return res.data
+}
+
+export async function getForecastByDay(productId: string, days: number): Promise<ForecastResponse> {
+  const res = await api.get(`/forecast/orders/realized/daily`, {
+    params: { productId, days }
+  })
+
   return res.data
 }

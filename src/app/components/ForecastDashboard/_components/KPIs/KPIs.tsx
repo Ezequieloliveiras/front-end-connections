@@ -16,7 +16,11 @@ interface Props {
     data: ForecastResponse
 }
 
-type Tone = "good" | "bad" | "neutral" | "stable"
+type Trend = "stable" | "up" | "down"
+type Tone = "good" | "bad" | "neutral"
+
+
+
 
 export function KPIs({ data }: Props) {
     const trendMap = {
@@ -26,13 +30,19 @@ export function KPIs({ data }: Props) {
     }
 
     const trend = trendMap[data.trend]
-    const trendText = trend?.label
 
-    const trendTone: Tone =
-        data.trend === "stable" ? "stable" :
-        data.trend === "up" ? "good" :
-            data.trend === "down" ? "bad" :
-                "neutral"
+function getTrendUI(trend?: string): { tone: Tone; text: string } {
+  switch (trend) {
+    case "up":
+      return { tone: "good", text: "Em alta" }
+    case "down":
+      return { tone: "bad", text: "Em baixa" }
+    case "stable":
+    default:
+      return { tone: "neutral", text: "Estável" }
+  }
+}
+const { tone: trendTone, text: trendText } = getTrendUI(data.trend)
 
     return (
         <>
@@ -42,7 +52,8 @@ export function KPIs({ data }: Props) {
                         <CardTitle>{data.productName}</CardTitle>
                         <CardHint>
                             Período: <b>{data.days} dias</b> • Confiança: <b>{Math.round(data.confidence)}%</b> • Tendência:{" "}
-                            <Badge $tone={trendTone}>{trendText}</Badge>
+                           <Badge $tone={trendTone}>{trendText}</Badge>
+
                         </CardHint>
                     </div>
                 </CardHeader>

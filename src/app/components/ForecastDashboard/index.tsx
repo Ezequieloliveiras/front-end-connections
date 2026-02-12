@@ -1,4 +1,4 @@
-import React, { use, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Page,
   Topbar,
@@ -45,10 +45,7 @@ type ForecastResponse = {
   daily: Array<{ date: string; qty: number }>
   clients: { hit: number; notHit: number }
   topChannels: Array<{ name: string; value: number }>
-}
-
-function clamp01(n: number) {
-  return Math.max(0, Math.min(1, n))
+  nextDays: Array<{ date: string; qty: number }>
 }
 
 type ProductApi = { _id: string; name: string }
@@ -94,7 +91,7 @@ export default function ForecastDashboard() {
     const fetchProductToAnalyze = async () => {
       try {
         const res = await getForecastByDayCustom(productId, days)
-        setData(res)
+        setData(res as ForecastResponse)
       } catch (err) {
         console.log('err', err)
         console.error("Erro ao buscar products:", err)
@@ -110,7 +107,7 @@ export default function ForecastDashboard() {
     try {
       setLoading(true)
       const res = await getForecastByDayCustom(productId, days)
-      setData(res)
+      setData(res as ForecastResponse)
     } catch (err) {
       setError("Erro ao buscar previsão")
     } finally {
