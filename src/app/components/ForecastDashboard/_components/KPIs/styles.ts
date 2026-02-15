@@ -8,38 +8,17 @@ export const Card = styled.div`
   overflow: hidden;
 `
 
-export const CardHeader = styled.div`
-  padding: 16px 16px 12px 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-`
-
-export const CardTitle = styled.h2`
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-`
-
-export const CardHint = styled.div`
-  margin-top: 6px;
-  font-size: 12px;
-  color: #64748b;
-
-  b { color: #0f172a; font-weight: 700; }
-`
-
 export const KpiRow = styled.div`
-  padding: 0 16px 16px 16px;
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(4, 1fr);
-
-  @media (max-width: 980px) { grid-template-columns: repeat(2, 1fr); }
-  @media (max-width: 520px) { grid-template-columns: 1fr; }
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 `
 
 export const KpiCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   background: linear-gradient(180deg, rgba(15,23,42,0.02), rgba(15,23,42,0.00));
   border-radius: 14px;
@@ -56,12 +35,6 @@ export const KpiValue = styled.div`
   font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.02em;
-`
-
-export const KpiSub = styled.div`
-  margin-top: 6px;
-  font-size: 12px;
-  color: #64748b;
 `
 
 export const Badge = styled.span<{ $tone?: "good" | "bad" | "neutral" }>`

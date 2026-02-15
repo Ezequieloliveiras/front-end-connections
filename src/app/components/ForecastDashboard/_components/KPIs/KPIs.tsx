@@ -2,88 +2,81 @@ import { ForecastResponse } from "../../types"
 import {
     Card,
     Badge,
-    CardHeader,
-    CardTitle,
-    CardHint,
     KpiRow,
     KpiCard,
     KpiLabel,
     KpiValue,
-    KpiSub
 } from "./styles"
 
 interface Props {
     data: ForecastResponse
+    preset: number | string
 }
 
-type Trend = "stable" | "up" | "down"
 type Tone = "good" | "bad" | "neutral"
 
-
-
-
-export function KPIs({ data }: Props) {
-    const trendMap = {
-        up: { label: "Alta", tone: "good" },
-        down: { label: "Queda", tone: "bad" },
-        stable: { label: "Estável", tone: "neutral" },
-    }
-
-    const trend = trendMap[data.trend]
-
 function getTrendUI(trend?: string): { tone: Tone; text: string } {
-  switch (trend) {
-    case "up":
-      return { tone: "good", text: "Em alta" }
-    case "down":
-      return { tone: "bad", text: "Em baixa" }
-    case "stable":
-    default:
-      return { tone: "neutral", text: "Estável" }
-  }
+    switch (trend) {
+        case "up":
+            return { tone: "good", text: "Em alta" }
+        case "down":
+            return { tone: "bad", text: "Em baixa" }
+        case "stable":
+        default:
+            return { tone: "neutral", text: "Estável" }
+    }
 }
-const { tone: trendTone, text: trendText } = getTrendUI(data.trend)
+// Utilizamos o histórico de vendas do produto e a tendência recente para projetar a demanda futura
+export function KPIs({ data, preset }: Props) {
+    const { tone: trendTone, text: trendText } = getTrendUI(data.trend)
+    const forecast = Number(data.nextDays ?? 0)      // previsão para os próximos X dias
+    const days = Number(data.days ?? 0)              // dias analisados (vem do back)
+    const avgPerDay = days > 0 ? forecast / days : 0
+    const confidence = Math.round(Number(data.confidence ?? 0))
 
     return (
-        <>
-            <Card style={{ gridColumn: "1 / -1" }}>
-                <CardHeader>
-                    <div>
-                        <CardTitle>{data.productName}</CardTitle>
-                        <CardHint>
-                            Período: <b>{data.days} dias</b> • Confiança: <b>{Math.round(data.confidence)}%</b> • Tendência:{" "}
-                           <Badge $tone={trendTone}>{trendText}</Badge>
+        <Card style={{ gridColumn: "1 / -1", padding: "16px 16px 12px 16px" }}>
 
-                        </CardHint>
+            <KpiRow style={{ gridTemplateColumns: "1.2fr 1fr", gap: 14 }}>
+                {/* KPI principal */}
+                <KpiCard style={{ minHeight: 110, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                    <KpiLabel>Vendas previstas nos próximos {preset} dias</KpiLabel>
+                    <KpiValue style={{ fontSize: 34, lineHeight: "40px" }}>
+                        {forecast.toLocaleString("pt-BR")}
+                    </KpiValue>
+                    <KpiLabel>Com base nas vendas recentes e na tendência atual, a expectativa é de aproximadamente {forecast} unidades nos próximos {preset} dias</KpiLabel>
+                </KpiCard>
+
+                {/* mini KPIs (tapando o “buraco” com info útil pro forecast) */}
+                <KpiCard style={{ display: "grid", gap: 10, alignContent: "start" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                        <div>
+                            <KpiLabel>Confiança</KpiLabel>
+                            <KpiValue>{confidence}%</KpiValue>
+                        </div>
+
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+
+                            <KpiLabel>Tendência</KpiLabel>
+                            <div style={{ marginTop: 6 }}>
+                                <Badge $tone={trendTone}>{trendText}</Badge>
+                            </div>
+                        </div>
                     </div>
-                </CardHeader>
 
-                <KpiRow>
-                    <KpiCard>
-                        <KpiLabel>Previsão (Qtd.)</KpiLabel>
-                        <KpiValue>{data.nextDays?.toLocaleString("pt-BR")}</KpiValue>
-                        <KpiSub>Estimativa para {data.days} dias</KpiSub>
-                    </KpiCard>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                        <div>
+                            <KpiLabel>Média/dia</KpiLabel>
+                            <KpiValue>{avgPerDay.toFixed(1).replace(".", ",")}</KpiValue>
+                        </div>
 
-                    <KpiCard>
-                        <KpiLabel>Planejado</KpiLabel>
-                        <KpiValue>{data.plannedQty?.toLocaleString("pt-BR")}</KpiValue>
-                        <KpiSub>Meta definida</KpiSub>
-                    </KpiCard>
-
-                    <KpiCard>
-                        <KpiLabel>Realizado</KpiLabel>
-                        <KpiValue>{data.realizedQty?.toLocaleString("pt-BR")}</KpiValue>
-                        <KpiSub>Último consolidado</KpiSub>
-                    </KpiCard>
-
-                    <KpiCard>
-                        <KpiLabel>Gap (Planejado - Realizado)</KpiLabel>
-                        <KpiValue>{(data.plannedQty - data.realizedQty)?.toLocaleString("pt-BR")}</KpiValue>
-                        <KpiSub>Diferença atual</KpiSub>
-                    </KpiCard>
-                </KpiRow>
-            </Card>
-        </>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                            <KpiLabel>Dias analisados</KpiLabel>
+                            <KpiValue>{preset}</KpiValue>
+                        </div>
+                    </div>
+                </KpiCard>
+            </KpiRow>
+        </Card>
     )
 }

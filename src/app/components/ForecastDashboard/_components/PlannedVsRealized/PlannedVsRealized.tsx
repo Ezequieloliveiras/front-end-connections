@@ -60,7 +60,7 @@ export function PlannedVsRealized({ productId, days }: Props) {
     <Card>
       <CardHeader>
         <div>
-          <CardTitle>Venda por canal</CardTitle>
+          <CardTitle>Quantidade de pedidos realizados por canal nos últimos {days} dias</CardTitle>
           <CardHint>Comparativo rápido por canal</CardHint>
         </div>
       </CardHeader>

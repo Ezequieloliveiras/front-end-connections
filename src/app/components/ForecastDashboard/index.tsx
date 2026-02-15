@@ -37,11 +37,10 @@ type ForecastResponse = {
   productName: string
   days: number
   forecastQty: number
-  confidence: number // 0..1
+  confidence: number
   trend: "up" | "down" | "stable"
   plannedQty: number
   realizedQty: number
-  // exemplo de breakdown (pra gráficos)
   daily: Array<{ date: string; qty: number }>
   clients: { hit: number; notHit: number }
   topChannels: Array<{ name: string; value: number }>
@@ -58,7 +57,6 @@ export default function ForecastDashboard() {
   const [loading, setLoading] = useState(false)
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
-
 
   const days = useMemo(() => {
     if (preset === "custom") return Math.max(1, Number(customDays || 1))
@@ -184,7 +182,7 @@ export default function ForecastDashboard() {
       {data && (
         <ContentGrid>
           {/* KPIs */}
-          <KPIs data={data} />
+          <KPIs data={data} preset={preset || customDays} />
 
           <PlannedVsRealized productId={productId} days={days} />
 

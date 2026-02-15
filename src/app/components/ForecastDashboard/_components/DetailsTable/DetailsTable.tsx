@@ -71,8 +71,8 @@ export function DetailsTable({ preset, customDays, productId }: Props) {
     <Card style={{ gridColumn: "1 / -1", position: "relative" }}>
       <CardHeader>
         <div>
-          <CardTitle>Detalhamento (realizado)</CardTitle>
-          <CardHint>Vendas realizadas por dia (últimos {days} dias)</CardHint>
+          <CardTitle>Detalhamento de unidades vendidas nos últimos {days} dias</CardTitle>
+          <CardHint>Quantidade de unidades vendidas por dia.</CardHint>
           {error && <CardHint><b>{error}</b></CardHint>}
         </div>
       </CardHeader>

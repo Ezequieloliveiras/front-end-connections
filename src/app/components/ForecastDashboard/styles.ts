@@ -94,6 +94,7 @@ export const Input = styled.input`
 `
 
 export const Button = styled.button`
+  width: 150px;
   height: 40px;
   padding: 0 14px;
   border-radius: 12px;
