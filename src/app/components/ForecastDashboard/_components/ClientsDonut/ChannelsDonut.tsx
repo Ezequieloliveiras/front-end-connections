@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import {
   Card,
   CardHeader,
@@ -10,7 +10,7 @@ import {
   Badge,
   Divider,
 } from "./styles"
-import { useRef } from "react"
+import { getTopChannels } from "@/app/services/forecast/forecast.service"
 
 interface Props {
   productId?: string
@@ -19,19 +19,32 @@ interface Props {
 
 type Channel = { name: string; value: number }
 
-const mockChannels: Channel[] = [
-  { name: "Shopee", value: 10 },
-  { name: "Mercado Livre", value: 7 },
-  { name: "Amazon", value: 3 },
-]
+type Slice = Channel & {
+  percent: number
+  startAngle: number
+  endAngle: number
+  midAngle: number
+}
 
-// cores (ajuste como quiser)
+const SIZES = {
+  outer: 180,
+  inner: 120,
+  labelRadiusOffset: 15,
+  minLabelPercent: 8,
+} as const
+
 const colorFor = (name: string) => {
   const n = name.toLowerCase()
-  if (n.includes("mercado livre")) return "#ffc116" // vermelho
-  if (n.includes("shopee")) return "#ef4444"        // preto/cinza
-  if (n.includes("amazon")) return "#000000"        // azul
-  return "#f59e0b"                                  // amarelo
+  if (n.includes("mercado livre")) return "#ffc116"
+  if (n.includes("shopee")) return "#ef4444"
+  if (n.includes("amazon")) return "#000000"
+  if (n.includes("magelu")) return "#3b82f6"
+  return "#f59e0b"
+}
+
+function polarToCartesian(angleDeg: number, radius: number) {
+  const rad = (angleDeg * Math.PI) / 180
+  return { x: Math.cos(rad) * radius, y: Math.sin(rad) * radius }
 }
 
 function buildConicGradient(channels: Channel[]) {
@@ -52,89 +65,113 @@ function buildConicGradient(channels: Channel[]) {
   return `conic-gradient(${parts.join(", ")})`
 }
 
-// calcula posição (x,y) do label no meio da fatia
-function polarToCartesian(angleDeg: number, radius: number) {
-  const rad = (angleDeg * Math.PI) / 180
-  return { x: Math.cos(rad) * radius, y: Math.sin(rad) * radius }
+function buildHighlightGradient(slice: Slice | undefined) {
+  if (!slice) return null
+  return `conic-gradient(
+    transparent 0deg ${slice.startAngle}deg,
+    rgba(255,255,255,0.45) ${slice.startAngle}deg ${slice.endAngle}deg,
+    transparent ${slice.endAngle}deg 360deg
+  )`
 }
 
-export function ChannelsDonut({ productId, days }: Props) {
+function useOutsideClick<T extends HTMLElement>(onOutside: () => void) {
+  const ref = useRef<T | null>(null)
+
+  useEffect(() => {
+    const handler = (e: PointerEvent) => {
+      const el = ref.current
+      if (!el) return
+
+      // se clicou dentro, não faz nada
+      if (el.contains(e.target as Node)) return
+
+      onOutside()
+    }
+
+    // capture=true evita “pisca” por ordem de eventos
+    document.addEventListener("pointerdown", handler, true)
+    return () => document.removeEventListener("pointerdown", handler, true)
+  }, [onOutside])
+
+  return ref
+}
+
+function useChannels(days: number, productId?: string) {
   const [channels, setChannels] = useState<Channel[]>([])
   const [loading, setLoading] = useState(false)
-  const [selected, setSelected] = useState<string | null>(null)
-  const wrapperRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     if (!Number.isFinite(days) || days <= 0) return
     setLoading(true)
-
-    // mock
-    setTimeout(() => {
-      setChannels(mockChannels)
-      setLoading(false)
-    }, 200)
-  }, [productId, days])
-
-  const sorted = useMemo(
-    () => [...channels].sort((a, b) => (b.value ?? 0) - (a.value ?? 0)),
-    [channels]
-  )
-
-  const total = useMemo(
-    () => sorted.reduce((acc, c) => acc + (Number(c.value) || 0), 0),
-    [sorted]
-  )
-  useEffect(() => {
-    const handleOutsideClick = (e: MouseEvent) => {
-      if (!wrapperRef.current) return
-      if (!wrapperRef.current.contains(e.target as Node)) {
-        setSelected(null)
+    const fetch = async () => {
+      try {
+        setLoading(true)
+        const res = await getTopChannels({ productId, days})
+        setChannels(res.topChannels ?? [])
+      } catch (err) {
+        console.error("Erro ao buscar canais:", err)
+        setChannels([])
+      } finally {
+        setLoading(false)
       }
     }
 
-    document.addEventListener("mousedown", handleOutsideClick)
-    return () => document.removeEventListener("mousedown", handleOutsideClick)
-  }, [])
+    fetch()
+  }, [days, productId])
 
-  const gradient = useMemo(() => buildConicGradient(sorted), [sorted])
+  return { channels, loading, setChannels }
+}
 
-  // ✅ cria “fatias” com start/end/midAngle + percent
-  const slices = useMemo(() => {
-    if (total <= 0) return []
+export function ChannelsDonut({ productId, days }: Props) {
+  const { channels, loading } = useChannels(days, productId)
+  const [selected, setSelected] = useState<string | null>(null)
+  const wrapperRef = useOutsideClick<HTMLDivElement>(() => setSelected(null))
 
-    let acc = 0
-    return sorted.map((c) => {
-      const value = Number(c.value) || 0
-      const percent = value / total
-      const startAngle = acc * 360
-      const endAngle = (acc + percent) * 360
-      const midAngle = (startAngle + endAngle) / 2
-      acc += percent
+  // tudo que é “derivado” fica aqui
+  const derived = useMemo(() => {
+    const sorted = [...channels].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+    const total = sorted.reduce((acc, c) => acc + (Number(c.value) || 0), 0)
 
-      return { name: c.name, value, percent, startAngle, endAngle, midAngle }
-    })
-  }, [sorted, total])
-  const highlightGradient = useMemo(() => {
-    if (!selected) return null
-    const s = slices.find(x => x.name === selected)
-    if (!s) return null
+    const slices: Slice[] = []
+    if (total > 0) {
+      let acc = 0
+      for (const c of sorted) {
+        const value = Number(c.value) || 0
+        const percent = value / total
+        const startAngle = acc * 360
+        const endAngle = (acc + percent) * 360
+        const midAngle = (startAngle + endAngle) / 2
+        acc += percent
+        slices.push({ ...c, value, percent, startAngle, endAngle, midAngle })
+      }
+    }
 
-    // desenha apenas a fatia; resto transparente
-    return `conic-gradient(
-    transparent 0deg ${s.startAngle}deg,
-    rgba(255,255,255,0.45) ${s.startAngle}deg ${s.endAngle}deg,
-    transparent ${s.endAngle}deg 360deg
-  )`
-  }, [selected, slices])
+    return {
+      sorted,
+      total,
+      slices,
+      gradient: buildConicGradient(sorted),
+    }
+  }, [channels])
 
+  const selectedSlice = useMemo(
+    () => derived.slices.find(s => s.name === selected),
+    [derived.slices, selected]
+  )
 
-  // ✅ tamanhos (pode ajustar)
-  const outerSize = 180
-  const innerSize = 120
-  const ringRadius = outerSize / 2
-  const labelRadius = ringRadius - 18 // joga o texto pra dentro do anel
+  const highlightGradient = useMemo(
+    () => buildHighlightGradient(selectedSlice),
+    [selectedSlice]
+  )
+
+  const outerSize = SIZES.outer
+  const innerSize = SIZES.inner
+  const labelRadius = (outerSize / 2 + innerSize / 2) / 2
+
 
   const handleRingClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (derived.total <= 0) return
+
     const rect = e.currentTarget.getBoundingClientRect()
     const cx = rect.left + rect.width / 2
     const cy = rect.top + rect.height / 2
@@ -142,20 +179,26 @@ export function ChannelsDonut({ productId, days }: Props) {
     const x = e.clientX - cx
     const y = e.clientY - cy
 
-    // ângulo em radianos, onde 0 é na direita. Vamos ajustar pra 0 começar “em cima”.
-    let angle = Math.atan2(y, x) * (180 / Math.PI) // -180..180
-    angle = (angle + 90 + 360) % 360 // 0..360, 0 no topo
+    let angle = Math.atan2(y, x) * (180 / Math.PI)
+    angle = (angle + 90 + 360) % 360
 
-    // opcional: ignorar clique dentro do “furo”
     const dist = Math.sqrt(x * x + y * y)
     const innerR = innerSize / 2
     const outerR = outerSize / 2
-    if (dist < innerR || dist > outerR) return
 
-    const hit = slices.find(s => angle >= s.startAngle && angle < s.endAngle)
-    if (!hit) return
+    // clicou no “furo” ou fora do donut => desmarca
+    if (dist < innerR || dist > outerR) {
+      setSelected(null)
+      return
+    }
 
-    setSelected(prev => (prev === hit.name ? null : hit.name)) // toggle
+    const hit = derived.slices.find(s => angle >= s.startAngle && angle < s.endAngle)
+    if (!hit) {
+      setSelected(null)
+      return
+    }
+
+    setSelected(prev => (prev === hit.name ? null : hit.name))
   }
 
   return (
@@ -175,13 +218,12 @@ export function ChannelsDonut({ productId, days }: Props) {
             width: outerSize,
             height: outerSize,
             borderRadius: "50%",
-            background: gradient,
+            background: derived.gradient,
             position: "relative",
             display: "grid",
             placeItems: "center",
           }}
         >
-          {/* ✅ camada de highlight */}
           {highlightGradient && (
             <div
               style={{
@@ -195,7 +237,6 @@ export function ChannelsDonut({ productId, days }: Props) {
             />
           )}
 
-          {/* ✅ camada clicável (anel) */}
           <div
             onClick={handleRingClick}
             style={{
@@ -207,12 +248,11 @@ export function ChannelsDonut({ productId, days }: Props) {
             title="Clique em uma fatia para destacar"
           />
 
-          {/* labels em cada fatia */}
-          {slices.map((s) => {
+          {derived.slices.map((s) => {
             const pct = Math.round(s.percent * 100)
-            if (pct < 8) return null
-            const { x, y } = polarToCartesian(s.midAngle - 90, labelRadius)
+            if (pct < SIZES.minLabelPercent) return null
 
+            const { x, y } = polarToCartesian(s.midAngle - 90, labelRadius)
             const isSelected = selected === s.name
 
             return (
@@ -238,7 +278,6 @@ export function ChannelsDonut({ productId, days }: Props) {
             )
           })}
 
-          {/* furo do donut */}
           <div
             style={{
               width: innerSize,
@@ -254,32 +293,34 @@ export function ChannelsDonut({ productId, days }: Props) {
             }}
           >
             <DonutValue>
-              {selected
-                ? `${Math.round((slices.find(s => s.name === selected)?.percent ?? 0) * 100)}%`
-                : total
+              {selectedSlice
+                ? `${Math.round(selectedSlice.percent * 100)}%`
+                : derived.total
                   ? "100%"
                   : "0%"}
             </DonutValue>
 
             <DonutLabel>
-              {loading
-                ? "Carregando..."
-                : selected
-                  ? selected
-                  : "Total por canal"}
+              {loading ? "Carregando..." : selectedSlice ? selectedSlice.name : "Total por canal"}
             </DonutLabel>
           </div>
         </div>
       </DonutWrap>
 
       <div style={{ margin: 14, display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-        {total === 0 ? (
+        {derived.total === 0 ? (
           <Badge $tone="neutral">{loading ? "Carregando..." : "Sem dados no período"}</Badge>
         ) : (
-          sorted.slice(0, 4).map((c, idx) => {
-            const p = Math.round(((Number(c.value) || 0) / total) * 100)
+          derived.sorted.slice(0, 4).map((c) => {
+            const p = Math.round(((Number(c.value) || 0) / derived.total) * 100)
+            const isSelected = selected === c.name
             return (
-              <Badge key={c.name} $tone={idx === 0 ? "good" : "neutral"}>
+              <Badge
+                key={c.name}
+                $tone={isSelected ? "good" : "neutral"}
+                onClick={() => setSelected(prev => (prev === c.name ? null : c.name))}
+                style={{ cursor: "pointer" }}
+              >
                 {c.name}: {p}% ({Number(c.value || 0).toLocaleString("pt-BR")})
               </Badge>
             )
