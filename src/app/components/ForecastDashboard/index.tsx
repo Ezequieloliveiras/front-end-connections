@@ -19,7 +19,7 @@ import {
   EmptyState,
 } from "./styles"
 import { KPIs } from "./_components/KPIs/KPIs"
-import { ClientsDonut } from "./_components/ClientsDonut/ClientsDonut"
+import { ChannelsDonut } from "./_components/ClientsDonut/ChannelsDonut"
 import { PlannedVsRealized } from "./_components/PlannedVsRealized/PlannedVsRealized"
 import { DetailsTable } from "./_components/DetailsTable/DetailsTable"
 import { getForecastByDayCustom } from "@/app/services/forecast/forecast.service"
@@ -59,6 +59,12 @@ export default function ForecastDashboard() {
   const [data, setData] = useState<ForecastResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+
+  const days = useMemo(() => {
+    if (preset === "custom") return Math.max(1, Number(customDays || 1))
+    return Number(preset)
+  }, [preset, customDays])
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -80,11 +86,6 @@ export default function ForecastDashboard() {
     fetchProducts()
   }, [])
 
-  const days = useMemo(() => {
-    if (preset === "custom") return Math.max(1, Number(customDays || 1))
-    return Number(preset)
-  }, [preset, customDays])
-
   useEffect(() => {
     if (!productId) return
 
@@ -99,7 +100,6 @@ export default function ForecastDashboard() {
     }
     fetchProductToAnalyze()
   }, [products, preset, productId])
-
 
   const handleFetch = async () => {
     if (!productId) return
@@ -189,7 +189,7 @@ export default function ForecastDashboard() {
           <PlannedVsRealized productId={productId} days={days} />
 
           {/* Clientes atingindo o planejado (donut) */}
-          <ClientsDonut />
+          <ChannelsDonut productId={productId} days={days}  />
 
           {/* Tabela (detalhes) */}
           <DetailsTable preset={preset} customDays={customDays} productId={productId} />
