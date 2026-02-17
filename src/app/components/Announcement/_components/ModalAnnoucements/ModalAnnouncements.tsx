@@ -1,7 +1,6 @@
 import {
   BtnDanger,
   BtnPrimary,
-  Divider,
   EmptyHint,
   Field,
   FieldGrid,
@@ -9,24 +8,18 @@ import {
   Input,
   ModalBody,
   ModalCard,
-  ModalClose,
   ModalFooter,
-  ModalHeader,
   ModalOverlay,
-  ModalTitle,
   Select,
-  SubTitle,
-  Btn,
 } from "./styles"
 
-import { MarketplaceConfigForm } from "../MarketplaceConfigForm/MarketplaceConfigForm"
+import { FieldDef, MarketplaceConfigForm } from "../MarketplaceConfigForm/MarketplaceConfigForm"
 import { useEffect, useState } from "react"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
-type Marketplace = "mercado_livre" | "shopee" | "magalu"
+import type { Marketplace, AnnouncementStatus } from "../../constants"
 
-type AnnouncementStatus = "active" | "paused" | "inactive" | "draft" | "error"
 type Announcement = {
   _id?: string
   entityId: string
@@ -38,9 +31,23 @@ type Announcement = {
   status: AnnouncementStatus
   lastSyncAt?: string
   syncError?: string | null
-  config?: Record<string, any>
+  config?: Record<string, unknown>
   createdAt?: string
   updatedAt?: string
+}
+
+type ModalMode = "edit" | "publish" | "unpublish"
+
+type Props = {
+  mode: ModalMode
+  selectedAnnouncement: (Announcement & { configFields?: FieldDef[] }) | null
+  formConfig: Record<string, unknown>
+  setFormConfig: React.Dispatch<React.SetStateAction<Record<string, unknown>>>
+
+  closeModal: () => void
+  missingKeys?: string[]
+
+  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
 }
 
 export function ModalAnnoucements({
@@ -49,10 +56,9 @@ export function ModalAnnoucements({
   formConfig,
   setFormConfig,
   closeModal,
-  MARKETPLACES,
   missingKeys = [],
   setAnnouncements,
-}: any) {
+}: Props) {
   const { pushToast } = useToast()
 
   const fields = selectedAnnouncement?.configFields ?? []
@@ -60,26 +66,30 @@ export function ModalAnnoucements({
   const [formPrice, setFormPrice] = useState<number>(0)
   const [formStock, setFormStock] = useState<number>(0)
   const [formStatus, setFormStatus] = useState<AnnouncementStatus>("draft")
-    const upsertByIdLocal = (id: string, patch: Partial<Announcement>) => {
-        setAnnouncements((prev: any) =>
-            prev.map((a: any) => (a._id === id ? { ...a, ...patch, updatedAt: new Date().toISOString() } : a))
-        )
-    }
-  // sempre que mudar o anúncio selecionado, carrega no form
+
+  const upsertByIdLocal = (id: string, patch: Partial<Announcement>) => {
+    setAnnouncements((prev) =>
+      prev.map((a) =>
+        a._id === id ? { ...a, ...patch, updatedAt: new Date().toISOString() } : a
+      )
+    )
+  }
+
   useEffect(() => {
     if (!selectedAnnouncement) return
     setFormPrice(safeNumber(selectedAnnouncement.price))
     setFormStock(safeNumber(selectedAnnouncement.stock))
-    setFormStatus((selectedAnnouncement.status ?? "draft") as AnnouncementStatus)
+    setFormStatus(selectedAnnouncement.status ?? "draft")
     // se quiser também puxar config:
-    // setFormConfig(selectedAnnouncement.config ?? {})
+    // setFormConfig((selectedAnnouncement.config ?? {}) as Record<string, unknown>)
   }, [selectedAnnouncement])
 
   const handleSaveEdit = async () => {
     if (!selectedAnnouncement?._id) return pushToast("error", "Anúncio sem ID para atualizar.")
     const annId = selectedAnnouncement._id
+
     try {
-      const payload = {
+      const payload: Pick<Announcement, "price" | "stock" | "status"> = {
         price: safeNumber(formPrice),
         stock: safeNumber(formStock),
         status: formStatus,
@@ -98,9 +108,9 @@ export function ModalAnnoucements({
   const handlePublish = async () => {
     if (!selectedAnnouncement?._id) return pushToast("error", "Anúncio sem ID para publicar.")
     const annId = selectedAnnouncement._id
+
     try {
-      // publica com os valores que o usuário editou no modal
-      const payload = {
+      const payload: Pick<Announcement, "price" | "stock"> = {
         price: safeNumber(formPrice),
         stock: safeNumber(formStock),
       }
@@ -133,8 +143,6 @@ export function ModalAnnoucements({
   return (
     <ModalOverlay onMouseDown={closeModal}>
       <ModalCard onMouseDown={(e) => e.stopPropagation()}>
-        {/* ...header */}
-
         <ModalBody>
           <FieldGrid>
             <Field>
@@ -177,7 +185,6 @@ export function ModalAnnoucements({
             </Field>
           </FieldGrid>
 
-          {/* bloco de config dinamico */}
           {mode !== "unpublish" && fields.length > 0 ? (
             <>
               <EmptyHint>

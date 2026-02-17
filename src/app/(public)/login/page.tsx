@@ -235,7 +235,7 @@ export default function Login({
                         value={email}
                         onChange={(e) => {
                           const v = e.target.value
-                          setEmail(v)            // ✅ isso libera digitar
+                          setEmail(v)            // isso libera digitar
                           onChangeEmail?.(v)     // opcional: mantém compatível com props
                         }}
                         placeholder="seuemail@empresa.com"
@@ -255,7 +255,7 @@ export default function Login({
                         value={password}
                         onChange={(e) => {
                           const v = e.target.value
-                          setPassword(v)         // ✅ isso libera digitar
+                          setPassword(v)         // isso libera digitar
                           onChangePassword?.(v)  // opcional
                         }}
                         placeholder="••••••••••"

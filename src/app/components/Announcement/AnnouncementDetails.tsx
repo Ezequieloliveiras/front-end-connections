@@ -5,43 +5,14 @@ import { useParams } from "next/navigation"
 import {
     Page,
     Container,
-    Header,
     HeaderLeft,
     Title,
     SubTitle,
     MetaRow,
     MetaPill,
-    Grid,
-    Card,
-    CardTop,
-    CardTitleRow,
-    MarketplaceName,
-    StatusBadge,
-    CardBody,
-    Row,
-    Label,
-    Value,
-    CardActions,
-    Btn,
-    BtnPrimary,
-    BtnDanger,
-    BtnGhost,
     Divider,
     EmptyHint,
-    ModalOverlay,
-    ModalCard,
-    ModalHeader,
-    ModalTitle,
-    ModalClose,
-    ModalBody,
-    FieldGrid,
-    Field,
-    FieldLabel,
-    Input,
-    Select,
-    ModalFooter,
-    ToastArea,
-    ToastItem,
+    Header
 } from "./styles"
 
 import { api } from "@/app/services/api"
@@ -67,57 +38,9 @@ type Announcement = {
     status: AnnouncementStatus
     lastSyncAt?: string
     syncError?: string | null
-    config?: Record<string, any>
+    config?: Record<string, unknown>
     createdAt?: string
     updatedAt?: string
-}
-type MarketplaceItem = {
-  key: Marketplace
-  label: string
-  src: string
-  width?: number
-  height?: number
-}
-
-const MARKETPLACES: MarketplaceItem[] = [
-  { key: "mercado_livre", label: "Mercado Livre", src: "/marketplace/mercado-libre.png", width: 40, height: 40 },
-  { key: "shopee", label: "Shopee", src: "/marketplace/shopee.png" , width: 40, height: 40},
-  { key: "magalu", label: "Magalu", src: "/marketplace/magablue.png",  width: 40, height: 40},
-]
-
-
-const STATUS_OPTIONS: Array<{ key: AnnouncementStatus | "all"; label: string }> = [
-    { key: "all", label: "Todos" },
-    { key: "active", label: "Publicado" },
-    { key: "paused", label: "Pausado" },
-    { key: "inactive", label: "Não publicado" },
-    { key: "draft", label: "Rascunho" },
-    { key: "error", label: "Erro" },
-]
-
-function statusLabel(status: AnnouncementStatus) {
-    switch (status) {
-        case "active":
-            return "Publicado"
-        case "paused":
-            return "Pausado"
-        case "inactive":
-            return "Não publicado"
-        case "draft":
-            return "Rascunho"
-        case "error":
-            return "Erro"
-        default:
-            return status
-    }
-}
-
-function formatBRL(value: number) {
-    try {
-        return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-    } catch {
-        return `R$ ${value}`
-    }
 }
 
 export default function AnnouncementManager() {
@@ -128,14 +51,13 @@ export default function AnnouncementManager() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([])
     const [loading, setLoading] = useState(true)
 
-    /** filtros */
+    // filters
     const [mpFilter, setMpFilter] = useState<Marketplace | "all">("all")
     const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | "all">("all")
     const [search, setSearch] = useState("")
-    const [page, setPage] = useState(1)
-    const pageSize = 20
+    const [formConfig, setFormConfig] = useState<Record<string, unknown>>({})
 
-    /** modal */
+    // modal
     const [isOpen, setIsOpen] = useState(false)
     const [mode, setMode] = useState<"edit" | "publish" | "unpublish">("edit")
     const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -167,17 +89,6 @@ export default function AnnouncementManager() {
         fetchAll()
     }, [announcementId])
 
-    useEffect(() => {
-        setPage(1)
-    }, [mpFilter, statusFilter, search])
-
-    const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-
-    const pageItems = useMemo(() => {
-        const start = (page - 1) * pageSize
-        return filtered.slice(start, start + pageSize)
-    }, [filtered, page])
-
     // seleção/modal
     const selectedAnnouncement = useMemo(() => {
         if (!selectedId) return null
@@ -188,6 +99,7 @@ export default function AnnouncementManager() {
         if (!ann?._id) return pushToast("error", "Anúncio sem ID.")
         setSelectedId(ann._id)
         setMode(nextMode)
+        setFormConfig(ann.config ?? {})
         setIsOpen(true)
     }
 
@@ -229,50 +141,35 @@ export default function AnnouncementManager() {
 
                 <Divider />
 
-                {/* ===== Resumo por marketplace ===== */}
-                <HeaderTotal
-                    MARKETPLACES={MARKETPLACES}
-                    summaryByMarketplace={summaryByMarketplace}
-                    pushToast={pushToast}
-                    setSearch={setSearch}
-                />
+                <HeaderTotal summaryByMarketplace={summaryByMarketplace} />
 
                 <Divider />
 
-                {/* ===== Filtros (reaproveitando seus styles: FieldGrid/Field/Input/Select) ===== */}
                 <Filters
-                    MARKETPLACES={MARKETPLACES}
-                    STATUS_OPTIONS={STATUS_OPTIONS}
                     mpFilter={mpFilter}
                     statusFilter={statusFilter}
                     search={search}
-                    setPage={setPage}
-                    page={page}
-                    totalPages={totalPages}
+                    filtered={filtered}
                     setSearch={setSearch}
                     setMpFilter={setMpFilter}
                     setStatusFilter={setStatusFilter}
                 />
                 <Divider />
 
-                {/* ===== Lista ===== */}
                 <Announcements
                     pageItems={filtered}
-                    statusLabel={statusLabel}
                     openModalFor={openModalFor}
                     safeNumber={safeNumber}
-                    formatBRL={formatBRL}
-                    MARKETPLACES={MARKETPLACES}
                     setAnnouncements={setAnnouncements}
                 />
 
-                {/* ===== Modal ===== */}
                 {isOpen && selectedAnnouncement ? (
                     <ModalAnnoucements
+                        formConfig={formConfig}
+                        setFormConfig={setFormConfig}
                         mode={mode}
                         selectedAnnouncement={selectedAnnouncement}
                         closeModal={closeModal}
-                        MARKETPLACES={MARKETPLACES}
                         setAnnouncements={setAnnouncements}
                     />
                 ) : null}

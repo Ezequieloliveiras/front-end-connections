@@ -1,50 +1,32 @@
 import Image from "next/image"
 import {
     Grid,
-    Btn,
-    BtnGhost,
     Card,
-    CardActions,
     CardBody,
     CardTitleRow,
     CardTop,
     Label,
     MarketplaceName,
     Row,
-    StatusBadge,
     Value,
 } from "./styles"
 
+import { MARKETPLACES, Marketplace, AnnouncementStatus } from "../../constants"
 
-type AnnouncementStatus = "active" | "paused" | "inactive" | "draft" | "error"
+interface Props {
+  summaryByMarketplace: Record<Marketplace, { total: number; counts: Record<AnnouncementStatus, number> }>
+}
 
-export function HeaderTotal({
-    MARKETPLACES,
-    summaryByMarketplace,
-    pushToast,
-    setSearch,
-}: any) {
+export function HeaderTotal({ summaryByMarketplace}: Props) {
     return (
         <>
             {/* se quiser usar o ícone em algum lugar: <GridIcon size={18} /> */}
 
             <Grid>
-                {MARKETPLACES.map((mp: any) => {
-                    const sum = summaryByMarketplace?.[mp.key]
+                {MARKETPLACES.map((mp) => {
+                    const sum = summaryByMarketplace[mp.key]
 
-                    // guarda pra não quebrar se vier undefined
                     if (!sum) return null
-
-                    const worstStatus: AnnouncementStatus =
-                        sum.counts.error > 0
-                            ? "error"
-                            : sum.counts.draft > 0
-                                ? "draft"
-                                : sum.counts.inactive > 0
-                                    ? "inactive"
-                                    : sum.counts.paused > 0
-                                        ? "paused"
-                                        : "active"
 
                     return (
                         <Card key={mp.key}>

@@ -1,8 +1,5 @@
-// MarketplaceConfigForm.tsx
 import React from "react"
 import { Field, FieldLabel, Input, Select } from "./styles"
-// se você tiver TextArea no styles:
-// import { TextArea } from "./styles"
 
 type FieldType = "text" | "number" | "select" | "textarea" | "string[]"
 
@@ -15,33 +12,43 @@ export type FieldDef = {
   options?: { label: string; value: string }[]
 }
 
-function getByPath(obj: any, path: string) {
-  return path.split(".").reduce((acc, k) => (acc == null ? acc : acc[k]), obj)
+type ConfigValue = Record<string, unknown>
+type ConfigLeaf = string | number | boolean | null | undefined | string[] | ConfigValue
+
+function getByPath(obj: ConfigValue, path: string): unknown {
+  return path.split(".").reduce<unknown>((acc, k) => {
+    if (acc == null || typeof acc !== "object") return undefined
+    return (acc as Record<string, unknown>)[k]
+  }, obj)
 }
 
-function setByPath(obj: any, path: string, value: any) {
+function setByPath(obj: ConfigValue, path: string, value: unknown) {
   const keys = path.split(".")
-  let cur = obj
+  let cur: ConfigValue = obj
+
   for (let i = 0; i < keys.length - 1; i++) {
     const k = keys[i]
-    if (!cur[k] || typeof cur[k] !== "object") cur[k] = {}
-    cur = cur[k]
+    const next = cur[k]
+    if (!next || typeof next !== "object" || Array.isArray(next)) {
+      cur[k] = {}
+    }
+    cur = cur[k] as ConfigValue
   }
-  cur[keys[keys.length - 1]] = value
+
+  cur[keys[keys.length - 1]] = value as ConfigLeaf
 }
 
 type Props = {
   fields: FieldDef[]
-  value: Record<string, any> | undefined
-  onChange: (next: Record<string, any>) => void
-  // opcional: destacar campos faltando
+  value: ConfigValue | undefined
+  onChange: (next: ConfigValue) => void
   missingKeys?: string[]
 }
 
 export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [] }: Props) {
-  const cfg = value ?? {}
+  const cfg: ConfigValue = value ?? {}
 
-  function update(path: string, nextValue: any) {
+  function update(path: string, nextValue: unknown) {
     const next = structuredClone(cfg)
     setByPath(next, path, nextValue)
     onChange(next)
@@ -53,9 +60,7 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
         const v = getByPath(cfg, f.key)
         const label = `${f.label}${f.required ? " *" : ""}`
         const isMissing = missingKeys.includes(f.key)
-
-        // usa data-attr pra você estilizar se quiser (borda vermelha etc.)
-        const fieldProps = { "data-missing": isMissing ? "1" : "0" }
+        const fieldProps = { "data-missing": isMissing ? "1" : "0" } as const
 
         if (f.type === "text") {
           return (
@@ -71,17 +76,19 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
         }
 
         if (f.type === "number") {
+          const valueStr = v == null ? "" : String(v)
           return (
             <Field key={f.key} {...fieldProps}>
               <FieldLabel>{label}</FieldLabel>
               <Input
                 type="number"
-                value={v ?? ""}
+                value={valueStr}
                 placeholder={f.placeholder}
                 onChange={(e) => {
                   const raw = e.target.value
-                  const n = raw === "" ? undefined : Number(raw)
-                  update(f.key, Number.isNaN(n as any) ? undefined : n)
+                  if (raw === "") return update(f.key, undefined)
+                  const n = Number(raw)
+                  update(f.key, Number.isNaN(n) ? undefined : n)
                 }}
               />
             </Field>
@@ -106,8 +113,6 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
           )
         }
 
-        // Se ainda não tiver TextArea no seu styles,
-        // dá pra começar tratando textarea como Input e depois melhora
         if (f.type === "textarea") {
           return (
             <Field key={f.key} {...fieldProps}>
@@ -116,14 +121,14 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
                 as="textarea"
                 value={String(v ?? "")}
                 placeholder={f.placeholder}
-                onChange={(e: any) => update(f.key, e.target.value)}
+                onChange={(e) => update(f.key, e.target.value)}
               />
             </Field>
           )
         }
 
         if (f.type === "string[]") {
-          const arr = Array.isArray(v) ? v : []
+          const arr = Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []
           return (
             <Field key={f.key} {...fieldProps}>
               <FieldLabel>{label}</FieldLabel>
@@ -131,7 +136,7 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
                 as="textarea"
                 placeholder={f.placeholder ?? "1 URL por linha"}
                 value={arr.join("\n")}
-                onChange={(e: any) => {
+                onChange={(e) => {
                   const lines = String(e.target.value)
                     .split("\n")
                     .map((s) => s.trim())
