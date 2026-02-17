@@ -1,5 +1,6 @@
 import Sidebar from "@/app/components/Slidebar/Sliderbar"
 import { GlobalStyle } from "../styles/global"
+import { ToastProvider } from "../components/Toast/Toast"
 
 export default function HomeLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +15,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
 
         {/* Conteúdo */}
         <main style={{ flex: 1, padding: 24 }}>
-          {children}
+         <ToastProvider> {children}</ToastProvider>
         </main>
       </div>
     </>
