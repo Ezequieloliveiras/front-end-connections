@@ -18,31 +18,14 @@ import { useEffect, useState } from "react"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
-import type { Marketplace, AnnouncementStatus } from "../../constants"
 
-type Announcement = {
-  _id?: string
-  entityId: string
-  productId?: string
-  marketplace: Marketplace
-  marketplaceProductId?: string
-  price: number
-  stock: number
-  status: AnnouncementStatus
-  lastSyncAt?: string
-  syncError?: string | null
-  config?: Record<string, unknown>
-  createdAt?: string
-  updatedAt?: string
-}
-
-type ModalMode = "edit" | "publish" | "unpublish"
+import { Announcement, AnnouncementConfig, AnnouncementStatus, ModalMode } from "@/app/types/announcements/types"
 
 type Props = {
   mode: ModalMode
   selectedAnnouncement: (Announcement & { configFields?: FieldDef[] }) | null
-  formConfig: Record<string, unknown>
-  setFormConfig: React.Dispatch<React.SetStateAction<Record<string, unknown>>>
+  formConfig: Partial<AnnouncementConfig>
+  setFormConfig: React.Dispatch<React.SetStateAction<Partial<AnnouncementConfig>>>
 
   closeModal: () => void
   missingKeys?: string[]
@@ -80,8 +63,6 @@ export function ModalAnnoucements({
     setFormPrice(safeNumber(selectedAnnouncement.price))
     setFormStock(safeNumber(selectedAnnouncement.stock))
     setFormStatus(selectedAnnouncement.status ?? "draft")
-    // se quiser também puxar config:
-    // setFormConfig((selectedAnnouncement.config ?? {}) as Record<string, unknown>)
   }, [selectedAnnouncement])
 
   const handleSaveEdit = async () => {
@@ -89,10 +70,11 @@ export function ModalAnnoucements({
     const annId = selectedAnnouncement._id
 
     try {
-      const payload: Pick<Announcement, "price" | "stock" | "status"> = {
+      const payload: Pick<Announcement, "price" | "stock" | "status" | "config"> = {
         price: safeNumber(formPrice),
         stock: safeNumber(formStock),
         status: formStatus,
+        config: formConfig,
       }
 
       const { data } = await api.patch<Announcement>(`/announcements/${annId}`, payload)

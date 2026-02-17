@@ -20,36 +20,21 @@ import {
     BtnGhost,
 } from "./styles"
 
-import { MARKETPLACES, Marketplace, AnnouncementStatus } from "../../constants"
+import { MARKETPLACES } from "../../constants"
 import { statusLabel } from "@/app/utils/announcements/status"
 import { formatBRL } from "@/app/utils/announcements/formatBRL"
-
-export type Announcement = {
-    _id?: string
-    entityId: string
-    productId?: string
-    marketplace: Marketplace
-    marketplaceProductId?: string
-    price: number
-    stock: number
-    status: AnnouncementStatus
-    lastSyncAt?: string
-    syncError?: string | null
-    config?: Record<string, unknown>
-    createdAt?: string
-    updatedAt?: string
-}
+import { Announcement, AnnouncementStatus } from "@/app/types/announcements/types"
 
 type ModalMode = "edit" | "publish" | "unpublish"
 
 type Props = {
-    pageItems: Announcement[]
     openModalFor: (ann: Announcement, mode: ModalMode) => void
     safeNumber: (value: unknown) => number
     setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
+    pageItems: Announcement[]
 }
 
-export function Announcements({ pageItems, openModalFor, safeNumber, setAnnouncements }: Props) {
+export function Announcements({ openModalFor, safeNumber, setAnnouncements, pageItems }: Props) {
     const { pushToast } = useToast()
 
     const upsertByIdLocal = (id: string, patch: Partial<Announcement>) => {
@@ -104,10 +89,6 @@ export function Announcements({ pageItems, openModalFor, safeNumber, setAnnounce
 
                             <CardBody>
                                 <Row>
-                                    <Label>ID do anúncio</Label>
-                                    <Value>{ann._id ?? "—"}</Value>
-                                </Row>
-                                <Row>
                                     <Label>ID no marketplace</Label>
                                     <Value>{ann.marketplaceProductId ?? "—"}</Value>
                                 </Row>
@@ -115,6 +96,16 @@ export function Announcements({ pageItems, openModalFor, safeNumber, setAnnounce
                                     <Label>Product ID</Label>
                                     <Value>{ann.productId ?? "—"}</Value>
                                 </Row>
+                                <Row>
+                                    <Label>Produto</Label>
+                                    <Value>{ann?.config?.title ?? "—"}</Value>
+                                </Row>
+
+                                <Row>
+                                    <Label>Descrição</Label>
+                                    <Value>{ann?.config?.description ?? "—"}</Value>
+                                </Row>
+
                                 <Row>
                                     <Label>Preço</Label>
                                     <Value>{formatBRL(safeNumber(ann.price))}</Value>

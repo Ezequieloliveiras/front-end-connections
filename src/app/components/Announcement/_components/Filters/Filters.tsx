@@ -33,6 +33,8 @@ type FiltersProps = {
     setSearch: React.Dispatch<React.SetStateAction<string>>
 
     filtered: unknown[] // se você tiver o tipo Announcement, troque pra Announcement[]
+
+    pageSize: number
 }
 
 export function Filters({
@@ -43,6 +45,7 @@ export function Filters({
     search,
     setSearch,
     filtered,
+    pageSize,
 }: FiltersProps) {
     const { pushToast } = useToast()
     const [page, setPage] = useState(1)
@@ -51,13 +54,7 @@ export function Filters({
         setPage(1)
     }, [mpFilter, statusFilter, search])
 
-    const pageSize = 20
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
-
-    const pageItems = useMemo(() => {
-        const start = (page - 1) * pageSize
-        return filtered.slice(start, start + pageSize)
-    }, [filtered, page])
 
     return (
         <Card>

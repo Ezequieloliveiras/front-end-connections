@@ -24,24 +24,9 @@ import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
 import { useAnnouncementsView } from "./useAnnouncements"
 
-type Marketplace = "mercado_livre" | "shopee" | "magalu"
-type AnnouncementStatus = "active" | "paused" | "inactive" | "draft" | "error"
+import { Marketplace } from "@/app/types/marketplace/types"
+import { Announcement, AnnouncementConfig, AnnouncementStatus } from "@/app/types/announcements/types"
 
-type Announcement = {
-    _id?: string
-    entityId: string
-    productId?: string
-    marketplace: Marketplace
-    marketplaceProductId?: string
-    price: number
-    stock: number
-    status: AnnouncementStatus
-    lastSyncAt?: string
-    syncError?: string | null
-    config?: Record<string, unknown>
-    createdAt?: string
-    updatedAt?: string
-}
 
 export default function AnnouncementManager() {
     const params = useParams<{ id?: string }>()
@@ -55,12 +40,15 @@ export default function AnnouncementManager() {
     const [mpFilter, setMpFilter] = useState<Marketplace | "all">("all")
     const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | "all">("all")
     const [search, setSearch] = useState("")
-    const [formConfig, setFormConfig] = useState<Record<string, unknown>>({})
 
+    // form
+    const [formConfig, setFormConfig] = useState<Partial<AnnouncementConfig>>({})
+    console.log("formConfig", formConfig)
     // modal
     const [isOpen, setIsOpen] = useState(false)
     const [mode, setMode] = useState<"edit" | "publish" | "unpublish">("edit")
     const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [page, setPage] = useState(1)
 
     const closeModal = () => setIsOpen(false)
 
@@ -102,6 +90,13 @@ export default function AnnouncementManager() {
         setFormConfig(ann.config ?? {})
         setIsOpen(true)
     }
+
+    const pageSize = 20
+
+    const pageItems = useMemo(() => {
+        const start = (page - 1) * pageSize
+        return filtered.slice(start, start + pageSize)
+    }, [filtered, page])
 
     if (loading) {
         return (
@@ -153,11 +148,12 @@ export default function AnnouncementManager() {
                     setSearch={setSearch}
                     setMpFilter={setMpFilter}
                     setStatusFilter={setStatusFilter}
+                    pageSize={pageSize}
                 />
                 <Divider />
 
                 <Announcements
-                    pageItems={filtered}
+                    pageItems={pageItems}
                     openModalFor={openModalFor}
                     safeNumber={safeNumber}
                     setAnnouncements={setAnnouncements}
