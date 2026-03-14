@@ -1,19 +1,16 @@
 import React from "react"
 import { Field, FieldLabel, Input, Select } from "./styles"
-
-type FieldType = "text" | "number" | "select" | "textarea" | "string[]"
-
-export type FieldDef = {
-  key: string
-  label: string
-  type: FieldType
-  required?: boolean
-  placeholder?: string
-  options?: { label: string; value: string }[]
-}
+import { FieldDef } from "../announcements/types"
 
 type ConfigValue = Record<string, unknown>
-type ConfigLeaf = string | number | boolean | null | undefined | string[] | ConfigValue
+type ConfigLeaf =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | string[]
+  | ConfigValue
 
 function getByPath(obj: ConfigValue, path: string): unknown {
   return path.split(".").reduce<unknown>((acc, k) => {
@@ -29,9 +26,11 @@ function setByPath(obj: ConfigValue, path: string, value: unknown) {
   for (let i = 0; i < keys.length - 1; i++) {
     const k = keys[i]
     const next = cur[k]
+
     if (!next || typeof next !== "object" || Array.isArray(next)) {
       cur[k] = {}
     }
+
     cur = cur[k] as ConfigValue
   }
 
@@ -45,7 +44,12 @@ type Props = {
   missingKeys?: string[]
 }
 
-export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [] }: Props) {
+export function MarketplaceConfigForm({
+  fields,
+  value,
+  onChange,
+  missingKeys = [],
+}: Props) {
   const cfg: ConfigValue = value ?? {}
 
   function update(path: string, nextValue: unknown) {
@@ -77,6 +81,7 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
 
         if (f.type === "number") {
           const valueStr = v == null ? "" : String(v)
+
           return (
             <Field key={f.key} {...fieldProps}>
               <FieldLabel>{label}</FieldLabel>
@@ -87,6 +92,7 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
                 onChange={(e) => {
                   const raw = e.target.value
                   if (raw === "") return update(f.key, undefined)
+
                   const n = Number(raw)
                   update(f.key, Number.isNaN(n) ? undefined : n)
                 }}
@@ -99,12 +105,16 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
           return (
             <Field key={f.key} {...fieldProps}>
               <FieldLabel>{label}</FieldLabel>
-              <Select value={String(v ?? "")} onChange={(e) => update(f.key, e.target.value)}>
+              <Select
+                value={String(v ?? "")}
+                onChange={(e) => update(f.key, e.target.value)}
+              >
                 <option value="" disabled>
                   Selecione...
                 </option>
+
                 {f.options?.map((op) => (
-                  <option key={op.value} value={op.value}>
+                  <option key={String(op.value)} value={String(op.value)}>
                     {op.label}
                   </option>
                 ))}
@@ -127,20 +137,40 @@ export function MarketplaceConfigForm({ fields, value, onChange, missingKeys = [
           )
         }
 
-        if (f.type === "string[]") {
-          const arr = Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []
+        if (f.type === "checkbox") {
+          return (
+            <Field key={f.key} {...fieldProps}>
+              <FieldLabel>
+                <input
+                  type="checkbox"
+                  checked={Boolean(v)}
+                  onChange={(e) => update(f.key, e.target.checked)}
+                  style={{ marginRight: 8 }}
+                />
+                {label}
+              </FieldLabel>
+            </Field>
+          )
+        }
+
+        if (f.type === "array") {
+          const arr = Array.isArray(v)
+            ? v.filter((x): x is string => typeof x === "string")
+            : []
+
           return (
             <Field key={f.key} {...fieldProps}>
               <FieldLabel>{label}</FieldLabel>
               <Input
                 as="textarea"
-                placeholder={f.placeholder ?? "1 URL por linha"}
+                placeholder={f.placeholder ?? "1 item por linha"}
                 value={arr.join("\n")}
                 onChange={(e) => {
                   const lines = String(e.target.value)
                     .split("\n")
                     .map((s) => s.trim())
                     .filter(Boolean)
+
                   update(f.key, lines)
                 }}
               />

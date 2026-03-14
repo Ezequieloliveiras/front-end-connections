@@ -13,13 +13,14 @@ import {
   Select,
 } from "./styles"
 
-import { FieldDef, MarketplaceConfigForm } from "../MarketplaceConfigForm/MarketplaceConfigForm"
+import { MarketplaceConfigForm } from "../MarketplaceConfigForm/MarketplaceConfigForm"
 import { useEffect, useState } from "react"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
 
 import { Announcement, AnnouncementConfig, AnnouncementStatus, ModalMode } from "@/app/types/announcements/types"
+import { FieldDef } from "../announcements/types"
 
 type Props = {
   mode: ModalMode

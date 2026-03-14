@@ -26,6 +26,7 @@ import { useAnnouncementsView } from "./useAnnouncements"
 
 import { Marketplace } from "@/app/types/marketplace/types"
 import { Announcement, AnnouncementConfig, AnnouncementStatus } from "@/app/types/announcements/types"
+import { CreateAnnouncementBar } from "./_components/announcements/createAnnouncements/CreateAnnouncementBar"
 
 
 export default function AnnouncementManager() {
@@ -133,7 +134,6 @@ export default function AnnouncementManager() {
                         </MetaRow>
                     </HeaderLeft>
                 </Header>
-
                 <Divider />
 
                 <HeaderTotal summaryByMarketplace={summaryByMarketplace} />
@@ -151,6 +151,7 @@ export default function AnnouncementManager() {
                     pageSize={pageSize}
                 />
                 <Divider />
+                <CreateAnnouncementBar productId={announcementId} setAnnouncements={setAnnouncements} />
 
                 <Announcements
                     pageItems={pageItems}
