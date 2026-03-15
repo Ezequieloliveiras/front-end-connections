@@ -1,8 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
-import { api } from "@/app/services/api"
-import { useToast } from "@/app/components/Toast/Toast"
 import { CategoryLinkItem, MarketplaceKey } from "./CategoryLinkScreen"
-import { normalizeMarketplaceFields } from "./normalizers/marketplaceFields"
 import type { MarketplaceFieldItem } from "./normalizers/marketplaceFields/types"
 import { MARKETPLACES } from "./categoryRoutes/categoryRoutes"
 
@@ -38,7 +34,6 @@ import {
   SaveButton
 } from "./styles"
 
-import { getCategoriesERP } from "@/app/services/category/category.service"
 import { useCategoryStates } from "@/app/hooks/category/useCategoryStates"
 import { useHandlers } from "@/app/hooks/category/useHandlers"
 
