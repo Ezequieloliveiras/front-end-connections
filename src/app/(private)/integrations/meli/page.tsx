@@ -45,7 +45,7 @@ export default function Pages() {
             </CardDescription>
 
             <CardFooter>
-              <Link href="/settings/integrations/meli/categories">
+              <Link href="/settings/integrations/meli/categories"> 
                 <ActionButton>Gerenciar</ActionButton>
               </Link>
             </CardFooter>

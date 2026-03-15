@@ -231,7 +231,7 @@ export const ModalOverlay = styled.div`
 
 export const ModalCard = styled.div`
   width: 100%;
-  max-width: 720px;
+  width: auto;
   background: rgba(255, 255, 255, 0.98);
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 18px;

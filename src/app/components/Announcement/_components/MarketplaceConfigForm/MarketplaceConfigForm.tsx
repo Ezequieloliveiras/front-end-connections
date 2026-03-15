@@ -12,7 +12,9 @@ type ConfigLeaf =
   | string[]
   | ConfigValue
 
-function getByPath(obj: ConfigValue, path: string): unknown {
+function getByPath(obj: ConfigValue, path?: string): unknown {
+  if (!path) return undefined
+
   return path.split(".").reduce<unknown>((acc, k) => {
     if (acc == null || typeof acc !== "object") return undefined
     return (acc as Record<string, unknown>)[k]

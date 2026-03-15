@@ -18,15 +18,22 @@ import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
 import { Announcement, AnnouncementConfig } from "@/app/types/announcements/types"
 import { MarketplaceConfigForm } from "../../MarketplaceConfigForm/MarketplaceConfigForm"
-import { FieldDef, GetAnnouncementFieldsResponse } from "../types"
+import { FieldDef } from "../types"
 
+type ProductOption = {
+  _id: string
+  name: string
+  internalSku: string
+  brand?: string
+  erpCategoryId?: string
+  erpCategoryName?: string
+}
 
 type Props = {
-  productId: string | undefined
+  productId?: string
   closeModal: () => void
   setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
 }
-
 
 export function CreateAnnouncementModal({
   productId,
@@ -36,6 +43,7 @@ export function CreateAnnouncementModal({
   const { pushToast } = useToast()
 
   const [marketplace, setMarketplace] = useState("")
+  console.log("marketplace", marketplace)
   const [fields, setFields] = useState<FieldDef[]>([])
   const [loadingFields, setLoadingFields] = useState(false)
 
@@ -43,14 +51,95 @@ export function CreateAnnouncementModal({
   const [formStock, setFormStock] = useState<number>(0)
   const [formConfig, setFormConfig] = useState<Partial<AnnouncementConfig>>({})
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([])
-  const [categoryId, setCategoryId] = useState("")
 
   const [missingKeys, setMissingKeys] = useState<string[]>([])
+
+  const [products, setProducts] = useState<ProductOption[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
+  const [productSearch, setProductSearch] = useState("")
+  const [selectedProductId, setSelectedProductId] = useState(productId || "")
+  console.log("selectedProductId", selectedProductId)
+
+  useEffect(() => {
+    const fetchCategoryLinkByProductAndMarketplace = async () => {
+      try {
+        if (!selectedProductId || !marketplace) return
+
+        const { data } = await api.get(
+          `/category/product/${selectedProductId}/marketplace/${marketplace}`
+        )
+
+        console.log("vínculo encontrado:", data)
+        if (!data?.found) {
+          setFields([])
+          pushToast("warning", data?.message || "Vínculo não encontrado.")
+          return
+        }
+
+        const marketplaceCategoryId = data.data.marketplaceCategoryId
+
+        const fieldsResponse = await api.post("/category/fields", {
+          marketplace,
+          marketplaceCategoryId,
+        })
+
+        setFields(fieldsResponse.data.fields ?? [])
+        // Exemplo:
+        // data.categoryLink.marketplaceCategoryId
+        // data.categoryLink.marketplaceCategoryName
+
+        // aqui você pode salvar no state se quiser
+        // setCategoryId(data.categoryLink.marketplaceCategoryId)
+      } catch (err: any) {
+        console.error(err)
+        pushToast(
+          "error",
+          err?.response?.data?.message ||
+          "Erro ao buscar vínculo da categoria do produto."
+        )
+      }
+    }
+
+    fetchCategoryLinkByProductAndMarketplace()
+  }, [selectedProductId])
 
   const appendAnnouncementLocal = (announcement: Announcement) => {
     setAnnouncements((prev) => [announcement, ...prev])
   }
+
+  const fetchProducts = async (search = "") => {
+    try {
+      setLoadingProducts(true)
+
+      const { data } = await api.get<ProductOption[]>("/product/list", {
+        params: {
+          search,
+        },
+      })
+
+      setProducts(Array.isArray(data) ? data : [])
+    } catch (err: any) {
+      console.error(err)
+      pushToast(
+        "error",
+        err?.response?.data?.message || "Erro ao listar produtos."
+      )
+    } finally {
+      setLoadingProducts(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchProducts("")
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts(productSearch)
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [productSearch])
 
   const handleMarketplaceChange = async (nextMarketplace: string) => {
     setMarketplace(nextMarketplace)
@@ -63,10 +152,7 @@ export function CreateAnnouncementModal({
     try {
       setLoadingFields(true)
 
-      // const { data } = await api.get<GetAnnouncementFieldsResponse>(
-      //   `/announcements/fields/${nextMarketplace}`
-      // )
-
+      // const { data } = await api.get(`/announcements/fields/${nextMarketplace}`)
       // setFields(data.fields ?? [])
     } catch (err: any) {
       console.error(err)
@@ -80,8 +166,8 @@ export function CreateAnnouncementModal({
   }
 
   const handleCreate = async () => {
-    if (!productId) {
-      pushToast("error", "Produto não informado.")
+    if (!selectedProductId) {
+      pushToast("error", "Selecione um produto.")
       return
     }
 
@@ -95,7 +181,7 @@ export function CreateAnnouncementModal({
       setMissingKeys([])
 
       const payload = {
-        productId,
+        productId: selectedProductId,
         marketplace,
         price: safeNumber(formPrice),
         stock: safeNumber(formStock),
@@ -129,6 +215,40 @@ export function CreateAnnouncementModal({
       <ModalCard onMouseDown={(e) => e.stopPropagation()}>
         <ModalBody>
           <FieldGrid>
+
+            {marketplace.length > 0 &&
+              <>
+                <Field>
+                  <FieldLabel>Buscar produto</FieldLabel>
+                  <Input
+                    placeholder="Digite nome, SKU, marca ou categoria"
+                    value={productSearch}
+                    onChange={(e) => setProductSearch(e.target.value)}
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Produto</FieldLabel>
+                  <Select
+                    value={selectedProductId}
+                    onChange={(e) => setSelectedProductId(e.target.value)}
+                    disabled={loadingProducts}
+                  >
+                    <option value="">
+                      {loadingProducts ? "Carregando produtos..." : "Selecione"}
+                    </option>
+
+                    {products.map((product) => (
+                      <option key={product._id} value={product._id}>
+                        {product.name} — {product.internalSku}
+                        {product.erpCategoryName ? ` — ${product.erpCategoryName}` : ""}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </>
+            }
+
             <Field>
               <FieldLabel>Marketplace</FieldLabel>
               <Select
