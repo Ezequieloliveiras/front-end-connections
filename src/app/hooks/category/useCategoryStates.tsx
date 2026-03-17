@@ -8,8 +8,6 @@ import { api } from "@/app/services/api"
 import { getCategoriesERP } from "@/app/services/category/category.service"
 import { useEffect, useMemo, useState } from "react"
 
-
-
 type UseCategoryStatesProps = {
   link: CategoryLinkItem | null
 }
@@ -51,17 +49,16 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         selectedOptionalFieldIds: [],
     })
 
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoadingFieldConfig(true)
 
-                const { data } = await api.post<CategoryFieldsResponse>("/category/fields", {
+                const { data } = await api.post<CategoryFieldsResponse>(`/category/fields`, {
                     marketplace,
                     marketplaceCategoryId,
                 })
-
+                console.log("marketplaceCategoryId", marketplaceCategoryId)
                 const normalized = normalizeMarketplaceFields({
                     marketplace: String(marketplace),
                     response: data,
@@ -113,7 +110,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
             })
             setConfigOpen(false)
         }
-    }, [marketplace, marketplaceCategoryId, pushToast])
+    }, [marketplace, marketplaceCategoryId])
 
     useEffect(() => {
         const fetchErpCategories = async () => {

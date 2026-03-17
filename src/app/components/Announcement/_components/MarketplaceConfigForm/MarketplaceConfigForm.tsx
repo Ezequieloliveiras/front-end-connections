@@ -2,48 +2,64 @@ import React from "react"
 import { Field, FieldLabel, Input, Select } from "./styles"
 import { FieldDef } from "../announcements/types"
 
-type ConfigValue = Record<string, unknown>
-type ConfigLeaf =
+type ConfigObject = Record<string, unknown>
+
+type ConfigPrimitiveValue =
   | string
   | number
   | boolean
   | null
   | undefined
   | string[]
-  | ConfigValue
-
-function getByPath(obj: ConfigValue, path?: string): unknown {
-  if (!path) return undefined
-
-  return path.split(".").reduce<unknown>((acc, k) => {
-    if (acc == null || typeof acc !== "object") return undefined
-    return (acc as Record<string, unknown>)[k]
-  }, obj)
-}
-
-function setByPath(obj: ConfigValue, path: string, value: unknown) {
-  const keys = path.split(".")
-  let cur: ConfigValue = obj
-
-  for (let i = 0; i < keys.length - 1; i++) {
-    const k = keys[i]
-    const next = cur[k]
-
-    if (!next || typeof next !== "object" || Array.isArray(next)) {
-      cur[k] = {}
-    }
-
-    cur = cur[k] as ConfigValue
-  }
-
-  cur[keys[keys.length - 1]] = value as ConfigLeaf
-}
+  | ConfigObject
 
 type Props = {
   fields: FieldDef[]
-  value: ConfigValue | undefined
-  onChange: (next: ConfigValue) => void
+  value: ConfigObject | undefined
+  onChange: (updatedValue: ConfigObject) => void
   missingKeys?: string[]
+}
+
+function getValueByPath(
+  objectValue: ConfigObject,
+  fieldPath?: string
+): unknown {
+  if (!fieldPath) return undefined
+
+  return fieldPath.split(".").reduce<unknown>((currentValue, currentKey) => {
+    if (currentValue == null || typeof currentValue !== "object") {
+      return undefined
+    }
+
+    return (currentValue as Record<string, unknown>)[currentKey]
+  }, objectValue)
+}
+
+function setValueByPath(
+  objectValue: ConfigObject,
+  fieldPath: string,
+  newValue: unknown
+) {
+  const pathParts = fieldPath.split(".")
+  let currentObject: ConfigObject = objectValue
+
+  for (let index = 0; index < pathParts.length - 1; index++) {
+    const currentKey = pathParts[index]
+    const existingValue = currentObject[currentKey]
+
+    if (
+      !existingValue ||
+      typeof existingValue !== "object" ||
+      Array.isArray(existingValue)
+    ) {
+      currentObject[currentKey] = {}
+    }
+
+    currentObject = currentObject[currentKey] as ConfigObject
+  }
+
+  const lastPathPart = pathParts[pathParts.length - 1]
+  currentObject[lastPathPart] = newValue as ConfigPrimitiveValue
 }
 
 export function MarketplaceConfigForm({
@@ -52,72 +68,96 @@ export function MarketplaceConfigForm({
   onChange,
   missingKeys = [],
 }: Props) {
-  const cfg: ConfigValue = value ?? {}
+  const currentConfig: ConfigObject = value ?? {}
 
-  function update(path: string, nextValue: unknown) {
-    const next = structuredClone(cfg)
-    setByPath(next, path, nextValue)
-    onChange(next)
+  function updateFieldValue(fieldPath: string, newValue: unknown) {
+    const updatedConfig = structuredClone(currentConfig)
+    setValueByPath(updatedConfig, fieldPath, newValue)
+    onChange(updatedConfig)
   }
 
   return (
     <>
-      {fields.map((f) => {
-        const v = getByPath(cfg, f.key)
-        const label = `${f.label}${f.required ? " *" : ""}`
-        const isMissing = missingKeys.includes(f.key)
-        const fieldProps = { "data-missing": isMissing ? "1" : "0" } as const
+      {fields.map((field) => {
+        const fieldKey = field.key || field.id
+        const fieldLabel = field.label || field.name || field.id
+        const fieldType = field.type || "string"
+        const fieldOptions = field.values ?? field.options ?? []
+        const fieldPlaceholder = field.placeholder || field.raw?.hint || ""
 
-        if (f.type === "text") {
+        if (!fieldKey) return null
+
+        const fieldValue = getValueByPath(currentConfig, fieldKey)
+        const labelText = `${fieldLabel}${field.required ? " *" : ""}`
+        const isFieldMissing = missingKeys.includes(fieldKey)
+        const fieldAttributes = {
+          "data-missing": isFieldMissing ? "1" : "0",
+        } as const
+
+        if (fieldType === "text" ) {
           return (
-            <Field key={f.key} {...fieldProps}>
-              <FieldLabel>{label}</FieldLabel>
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
               <Input
-                value={String(v ?? "")}
-                placeholder={f.placeholder}
-                onChange={(e) => update(f.key, e.target.value)}
+                value={String(fieldValue ?? "")}
+                placeholder={fieldPlaceholder}
+                onChange={(event) =>
+                  updateFieldValue(fieldKey, event.target.value)
+                }
               />
             </Field>
           )
         }
 
-        if (f.type === "number") {
-          const valueStr = v == null ? "" : String(v)
+        if (fieldType === "number") {
+          const inputValue =
+            fieldValue == null ? "" : String(fieldValue)
 
           return (
-            <Field key={f.key} {...fieldProps}>
-              <FieldLabel>{label}</FieldLabel>
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
               <Input
                 type="number"
-                value={valueStr}
-                placeholder={f.placeholder}
-                onChange={(e) => {
-                  const raw = e.target.value
-                  if (raw === "") return update(f.key, undefined)
+                value={inputValue}
+                placeholder={fieldPlaceholder}
+                onChange={(event) => {
+                  const inputValue = event.target.value
 
-                  const n = Number(raw)
-                  update(f.key, Number.isNaN(n) ? undefined : n)
+                  if (inputValue === "") {
+                    updateFieldValue(fieldKey, undefined)
+                    return
+                  }
+
+                  const numericValue = Number(inputValue)
+
+                  updateFieldValue(
+                    fieldKey,
+                    Number.isNaN(numericValue) ? undefined : numericValue
+                  )
                 }}
               />
             </Field>
           )
         }
 
-        if (f.type === "select") {
+        if (fieldType === "select" || fieldType === "list") {
           return (
-            <Field key={f.key} {...fieldProps}>
-              <FieldLabel>{label}</FieldLabel>
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
               <Select
-                value={String(v ?? "")}
-                onChange={(e) => update(f.key, e.target.value)}
+                value={String(fieldValue ?? "")}
+                onChange={(event) =>
+                  updateFieldValue(fieldKey, event.target.value)
+                }
               >
-                <option value="" disabled>
-                  Selecione...
-                </option>
+                <option value="">Selecione...</option>
 
-                {f.options?.map((op) => (
-                  <option key={String(op.value)} value={String(op.value)}>
-                    {op.label}
+                {fieldOptions.map((option) => (
+                  <option
+                    key={String(option.value)}
+                    value={String(option.value)}
+                  >
+                    {option.label}
                   </option>
                 ))}
               </Select>
@@ -125,62 +165,144 @@ export function MarketplaceConfigForm({
           )
         }
 
-        if (f.type === "textarea") {
+        if (fieldType === "textarea") {
           return (
-            <Field key={f.key} {...fieldProps}>
-              <FieldLabel>{label}</FieldLabel>
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
               <Input
                 as="textarea"
-                value={String(v ?? "")}
-                placeholder={f.placeholder}
-                onChange={(e) => update(f.key, e.target.value)}
+                value={String(fieldValue ?? "")}
+                placeholder={fieldPlaceholder}
+                onChange={(event) =>
+                  updateFieldValue(fieldKey, event.target.value)
+                }
               />
             </Field>
           )
         }
 
-        if (f.type === "checkbox") {
+        if (fieldType === "checkbox" || fieldType === "boolean") {
           return (
-            <Field key={f.key} {...fieldProps}>
+            <Field key={fieldKey} {...fieldAttributes}>
               <FieldLabel>
                 <input
                   type="checkbox"
-                  checked={Boolean(v)}
-                  onChange={(e) => update(f.key, e.target.checked)}
+                  checked={Boolean(fieldValue)}
+                  onChange={(event) =>
+                    updateFieldValue(fieldKey, event.target.checked)
+                  }
                   style={{ marginRight: 8 }}
                 />
-                {label}
+                {labelText}
               </FieldLabel>
             </Field>
           )
         }
 
-        if (f.type === "array") {
-          const arr = Array.isArray(v)
-            ? v.filter((x): x is string => typeof x === "string")
+        if (fieldType === "array") {
+          const arrayValue = Array.isArray(fieldValue)
+            ? fieldValue.filter(
+              (item): item is string => typeof item === "string"
+            )
             : []
 
           return (
-            <Field key={f.key} {...fieldProps}>
-              <FieldLabel>{label}</FieldLabel>
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
               <Input
                 as="textarea"
-                placeholder={f.placeholder ?? "1 item por linha"}
-                value={arr.join("\n")}
-                onChange={(e) => {
-                  const lines = String(e.target.value)
+                placeholder={fieldPlaceholder || "1 item por linha"}
+                value={arrayValue.join("\n")}
+                onChange={(event) => {
+                  const items = String(event.target.value)
                     .split("\n")
-                    .map((s) => s.trim())
+                    .map((item) => item.trim())
                     .filter(Boolean)
 
-                  update(f.key, lines)
+                  updateFieldValue(fieldKey, items)
                 }}
               />
             </Field>
           )
         }
 
-        return null
+        if (fieldType === "number_unit") {
+          const fieldObjectValue =
+            fieldValue &&
+              typeof fieldValue === "object" &&
+              !Array.isArray(fieldValue)
+              ? (fieldValue as Record<string, unknown>)
+              : {}
+
+          const numberValue = fieldObjectValue.value ?? ""
+          const unitValue =
+            fieldObjectValue.unit ?? field.raw?.default_unit ?? ""
+
+          const allowedUnits = Array.isArray(field.raw?.allowed_units)
+            ? field.raw.allowed_units
+            : []
+
+          return (
+            <Field key={fieldKey} {...fieldAttributes}>
+              <FieldLabel>{labelText}</FieldLabel>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 140px",
+                  gap: 8,
+                }}
+              >
+                <Input
+                  type="number"
+                  value={String(numberValue)}
+                  placeholder={fieldPlaceholder || "Digite o valor"}
+                  onChange={(event) => {
+                    const inputValue = event.target.value
+
+                    updateFieldValue(fieldKey, {
+                      value: inputValue === "" ? "" : Number(inputValue),
+                      unit: unitValue,
+                    })
+                  }}
+                />
+
+                <Select
+                  value={String(unitValue)}
+                  onChange={(event) =>
+                    updateFieldValue(fieldKey, {
+                      value: numberValue,
+                      unit: event.target.value,
+                    })
+                  }
+                >
+                  <option value="">Selecione...</option>
+
+                  {allowedUnits.map(
+                    (unitOption: { id: string; name: string }) => (
+                      <option key={unitOption.id} value={unitOption.id}>
+                        {unitOption.name}
+                      </option>
+                    )
+                  )}
+                </Select>
+              </div>
+            </Field>
+          )
+        }
+
+        return (
+          <Field key={fieldKey} {...fieldAttributes}>
+            <FieldLabel>{labelText}</FieldLabel>
+            <Input
+              value={String(fieldValue ?? "")}
+              placeholder={fieldPlaceholder}
+              onChange={(event) =>
+                updateFieldValue(fieldKey, event.target.value)
+              }
+            />
+          </Field>
+        )
       })}
     </>
   )

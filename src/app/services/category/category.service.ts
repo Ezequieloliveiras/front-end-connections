@@ -9,14 +9,12 @@ interface CategoryFields {
     marketplaceCategoryId: string
     basicFields: BasicFieldKey[]
     fieldsRequired: MarketplaceFieldItem[]
-    fieldsByCategory: MarketplaceFieldItem[]
     selectedOptionalFieldIds: MarketplaceFieldItem[]
 }
 export interface CategoryLinkPayload {
     erpCategoryId: string
     erpCategoryName: string
     marketplace: MarketplaceKey
-    marketplaceCategoryId: string
     marketplaceCategoryName: string
 }
 

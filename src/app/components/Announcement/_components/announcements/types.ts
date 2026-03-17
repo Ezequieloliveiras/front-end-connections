@@ -10,6 +10,9 @@ export type FieldType =
   | "checkbox"
   | "textarea"
   | "array"
+  | "boolean"
+  | "list"
+  | "number_unit"
 
 export type FieldDef = {
   key: string
@@ -18,7 +21,13 @@ export type FieldDef = {
   required?: boolean
   placeholder?: string
   options?: FieldOption[]
+  values?: FieldOption[]
+  raw?: Record<string, any>
+  info?: string
+  id?: string
+  name?: string
 }
+
 export type GetAnnouncementFieldsResponse = {
   marketplace: string
   fields: FieldDef[]

@@ -62,7 +62,6 @@ export const useHandlers = ({
                 erpCategoryId,
                 erpCategoryName,
                 marketplace,
-                marketplaceCategoryId,
                 marketplaceCategoryName,
             }
 
@@ -167,7 +166,6 @@ export const useHandlers = ({
                 marketplaceCategoryId,
                 basicFields: fieldConfig.basicFields,
                 fieldsRequired: fieldConfig.fieldsRequired,
-                fieldsByCategory: fieldConfig.fieldsByCategory,
                 selectedOptionalFieldIds: fieldConfig.selectedOptionalFieldIds,
             }
 

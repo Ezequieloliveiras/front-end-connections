@@ -38,6 +38,7 @@ import { useCategoryStates } from "@/app/hooks/category/useCategoryStates"
 import { useHandlers } from "@/app/hooks/category/useHandlers"
 
 type BasicFieldKey = "title" | "description" | "price"
+
 export type AnnouncementFieldConfig = {
   entityId?: string
   marketplace: string

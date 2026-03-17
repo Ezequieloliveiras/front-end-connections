@@ -12,248 +12,210 @@ import {
   ModalFooter,
   ModalOverlay,
   Select,
+  Divider,
 } from "../styles"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
-import { Announcement, AnnouncementConfig } from "@/app/types/announcements/types"
+import {
+  Announcement,
+  AnnouncementConfig,
+} from "@/app/types/announcements/types"
 import { MarketplaceConfigForm } from "../../MarketplaceConfigForm/MarketplaceConfigForm"
 import { FieldDef } from "../types"
-
-type ProductOption = {
-  _id: string
-  name: string
-  internalSku: string
-  brand?: string
-  erpCategoryId?: string
-  erpCategoryName?: string
-}
-
-type Props = {
-  productId?: string
-  closeModal: () => void
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-}
+import {
+  buildFieldsFromConfig,
+  CreateAnnouncementModalProps,
+  FieldConfigResponseItem,
+  ProductOption
+} from "./BuildFieldsFromConfig"
+import { CategoryOption } from "../../category/EditCategoryLinkModal"
 
 export function CreateAnnouncementModal({
   productId,
   closeModal,
   setAnnouncements,
-}: Props) {
+}: CreateAnnouncementModalProps) {
   const { pushToast } = useToast()
 
-  const [marketplace, setMarketplace] = useState("")
-  console.log("marketplace", marketplace)
-  const [fields, setFields] = useState<FieldDef[]>([])
-  const [loadingFields, setLoadingFields] = useState(false)
-
-  const [formPrice, setFormPrice] = useState<number>(0)
-  const [formStock, setFormStock] = useState<number>(0)
-  const [formConfig, setFormConfig] = useState<Partial<AnnouncementConfig>>({})
-  const [loading, setLoading] = useState(false)
-
-  const [missingKeys, setMissingKeys] = useState<string[]>([])
-
+  const [selectedMarketplace, setSelectedMarketplace] = useState("")
+  const [marketplaceFields, setMarketplaceFields] = useState<FieldDef[]>([])
+  const [isLoadingMarketplaceFields, setIsLoadingMarketplaceFields] = useState(false)
+  const [price, setPrice] = useState<number>(0)
+  const [stock, setStock] = useState<number>(0)
+  const [description, setDescription] = useState("")
+  const [title, setTitle] = useState("")
+  const [url, setUrl] = useState("")
+  const [configuration, setConfiguration] = useState<Partial<AnnouncementConfig>>({})
+  const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false)
+  const [missingFieldKeys, setMissingFieldKeys] = useState<string[]>([])
   const [products, setProducts] = useState<ProductOption[]>([])
-  const [loadingProducts, setLoadingProducts] = useState(false)
-  const [productSearch, setProductSearch] = useState("")
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [productSearchText, setProductSearchText] = useState("")
   const [selectedProductId, setSelectedProductId] = useState(productId || "")
-  console.log("selectedProductId", selectedProductId)
+  const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null)
+  const [dataCategory, setDataCategory] = useState<FieldConfigResponseItem[] | null>(null)
 
   useEffect(() => {
-    const fetchCategoryLinkByProductAndMarketplace = async () => {
+    async function fetchProducts() {
       try {
-        if (!selectedProductId || !marketplace) return
+        setIsLoadingProducts(true)
 
-        const { data } = await api.get(
-          `/category/product/${selectedProductId}/marketplace/${marketplace}`
-        )
+        const { data } = await api.get<ProductOption[]>("/product/list", {
+          params: {
+            search: productSearchText,
+          },
+        })
 
-        console.log("vínculo encontrado:", data)
-        if (!data?.found) {
-          setFields([])
-          pushToast("warning", data?.message || "Vínculo não encontrado.")
+        setProducts(Array.isArray(data) ? data : [])
+
+        if (!selectedProductId) {
           return
         }
 
-        const marketplaceCategoryId = data.data.marketplaceCategoryId
-
-        const fieldsResponse = await api.post("/category/fields", {
-          marketplace,
-          marketplaceCategoryId,
-        })
-
-        setFields(fieldsResponse.data.fields ?? [])
-        // Exemplo:
-        // data.categoryLink.marketplaceCategoryId
-        // data.categoryLink.marketplaceCategoryName
-
-        // aqui você pode salvar no state se quiser
-        // setCategoryId(data.categoryLink.marketplaceCategoryId)
-      } catch (err: any) {
-        console.error(err)
-        pushToast(
-          "error",
-          err?.response?.data?.message ||
-          "Erro ao buscar vínculo da categoria do produto."
+        const currentSelectedProduct = (Array.isArray(data) ? data : []).find(
+          (product) => product._id === selectedProductId
         )
+
+        if (currentSelectedProduct) {
+          setSelectedProduct(currentSelectedProduct)
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoadingProducts(false)
       }
     }
 
-    fetchCategoryLinkByProductAndMarketplace()
-  }, [selectedProductId])
-
-  const appendAnnouncementLocal = (announcement: Announcement) => {
-    setAnnouncements((prev) => [announcement, ...prev])
-  }
-
-  const fetchProducts = async (search = "") => {
-    try {
-      setLoadingProducts(true)
-
-      const { data } = await api.get<ProductOption[]>("/product/list", {
-        params: {
-          search,
-        },
-      })
-
-      setProducts(Array.isArray(data) ? data : [])
-    } catch (err: any) {
-      console.error(err)
-      pushToast(
-        "error",
-        err?.response?.data?.message || "Erro ao listar produtos."
-      )
-    } finally {
-      setLoadingProducts(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchProducts("")
-  }, [])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchProducts(productSearch)
+    const timeout = setTimeout(() => {
+      fetchProducts()
     }, 400)
 
-    return () => clearTimeout(timer)
-  }, [productSearch])
+    return () => clearTimeout(timeout)
+  }, [productSearchText, selectedProductId])
 
-  const handleMarketplaceChange = async (nextMarketplace: string) => {
-    setMarketplace(nextMarketplace)
-    setFormConfig({})
-    setMissingKeys([])
-    setFields([])
+  useEffect(() => {
+    async function fetchMarketplaceFields() {
+      try {
+        if (!selectedProduct?.erpCategoryId || !selectedMarketplace) {
+          setMarketplaceFields([])
+          return
+        }
 
-    if (!nextMarketplace) return
+        setIsLoadingMarketplaceFields(true)
 
-    try {
-      setLoadingFields(true)
+        const response = await api.get<FieldConfigResponseItem[]>(
+          `/announcements/field-config/fields-category/${selectedProduct.erpCategoryId}/${selectedMarketplace}`
+        )
+        console.log('response', response)
+        setDataCategory(response.data)
+        const firstConfig = Array.isArray(response.data) ? response.data[0] : undefined
+        const normalizedFields = buildFieldsFromConfig(firstConfig)
 
-      // const { data } = await api.get(`/announcements/fields/${nextMarketplace}`)
-      // setFields(data.fields ?? [])
-    } catch (err: any) {
-      console.error(err)
-      pushToast(
-        "error",
-        err?.response?.data?.message || "Erro ao buscar campos do marketplace."
-      )
-    } finally {
-      setLoadingFields(false)
+        setMarketplaceFields(normalizedFields)
+      } catch (error: any) {
+        console.error(error)
+        setMarketplaceFields([])
+
+        pushToast(
+          "error",
+          error?.response?.data?.message ||
+          "Erro ao buscar configuração de campos."
+        )
+      } finally {
+        setIsLoadingMarketplaceFields(false)
+      }
     }
+
+    fetchMarketplaceFields()
+  }, [selectedProduct?.erpCategoryId, selectedMarketplace, pushToast])
+
+  function addAnnouncementToList(newAnnouncement: Announcement) {
+    setAnnouncements((currentAnnouncements) => [
+      newAnnouncement,
+      ...currentAnnouncements,
+    ])
   }
 
-  const handleCreate = async () => {
+  function handleMarketplaceChange(marketplaceValue: string) {
+    setSelectedMarketplace(marketplaceValue)
+    setConfiguration({})
+    setMissingFieldKeys([])
+    setMarketplaceFields([])
+  }
+
+  function handleProductChange(productIdValue: string) {
+    setSelectedProductId(productIdValue)
+
+    const foundProduct = products.find((product) => product._id === productIdValue)
+
+    setSelectedProduct(foundProduct || null)
+    setConfiguration({})
+    setMissingFieldKeys([])
+    setMarketplaceFields([])
+  }
+
+  async function handleCreateAnnouncement() {
     if (!selectedProductId) {
       pushToast("error", "Selecione um produto.")
       return
     }
 
-    if (!marketplace) {
+    if (!selectedMarketplace) {
       pushToast("error", "Selecione um marketplace.")
       return
     }
 
     try {
-      setLoading(true)
-      setMissingKeys([])
-
+      setIsCreatingAnnouncement(true)
+      setMissingFieldKeys([])
+      const marketplaceCategoryId = dataCategory?.[0]?.marketplaceCategoryId ?? null
       const payload = {
         productId: selectedProductId,
-        marketplace,
-        price: safeNumber(formPrice),
-        stock: safeNumber(formStock),
-        config: formConfig,
+        marketplace: selectedMarketplace,
+        title,
+        description,
+        price: safeNumber(price),
+        stock: safeNumber(stock),
+        data: configuration,
+        marketplaceCategoryId,
+        images: url,
       }
 
       const { data } = await api.post<Announcement>("/announcements", payload)
 
-      appendAnnouncementLocal(data)
+      addAnnouncementToList(data)
       pushToast("success", "Anúncio criado com sucesso.")
       closeModal()
-    } catch (err: any) {
-      console.error(err)
+    } catch (error: any) {
+      console.error(error)
 
-      const apiMissingKeys = err?.response?.data?.missingKeys
+      const apiMissingKeys = error?.response?.data?.missingKeys
       const apiMessage =
-        err?.response?.data?.message || "Erro ao criar anúncio."
+        error?.response?.data?.message || "Erro ao criar anúncio."
 
       if (Array.isArray(apiMissingKeys)) {
-        setMissingKeys(apiMissingKeys)
+        setMissingFieldKeys(apiMissingKeys)
       }
 
       pushToast("error", apiMessage)
     } finally {
-      setLoading(false)
+      setIsCreatingAnnouncement(false)
     }
   }
 
   return (
     <ModalOverlay onMouseDown={closeModal}>
-      <ModalCard onMouseDown={(e) => e.stopPropagation()}>
+      <ModalCard onMouseDown={(event) => event.stopPropagation()}>
         <ModalBody>
           <FieldGrid>
-
-            {marketplace.length > 0 &&
-              <>
-                <Field>
-                  <FieldLabel>Buscar produto</FieldLabel>
-                  <Input
-                    placeholder="Digite nome, SKU, marca ou categoria"
-                    value={productSearch}
-                    onChange={(e) => setProductSearch(e.target.value)}
-                  />
-                </Field>
-
-                <Field>
-                  <FieldLabel>Produto</FieldLabel>
-                  <Select
-                    value={selectedProductId}
-                    onChange={(e) => setSelectedProductId(e.target.value)}
-                    disabled={loadingProducts}
-                  >
-                    <option value="">
-                      {loadingProducts ? "Carregando produtos..." : "Selecione"}
-                    </option>
-
-                    {products.map((product) => (
-                      <option key={product._id} value={product._id}>
-                        {product.name} — {product.internalSku}
-                        {product.erpCategoryName ? ` — ${product.erpCategoryName}` : ""}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-              </>
-            }
-
             <Field>
               <FieldLabel>Marketplace</FieldLabel>
               <Select
-                value={marketplace}
-                onChange={(e) => handleMarketplaceChange(e.target.value)}
+                value={selectedMarketplace}
+                onChange={(event) =>
+                  handleMarketplaceChange(event.target.value)
+                }
               >
                 <option value="">Selecione</option>
                 <option value="mercado_livre">Mercado Livre</option>
@@ -262,12 +224,71 @@ export function CreateAnnouncementModal({
               </Select>
             </Field>
 
+            {selectedMarketplace.length > 0 && (
+              <>
+                <Field>
+                  <FieldLabel>Buscar produto</FieldLabel>
+                  <Input
+                    placeholder="Digite nome, SKU, marca ou categoria"
+                    value={productSearchText}
+                    onChange={(event) =>
+                      setProductSearchText(event.target.value)
+                    }
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Produto</FieldLabel>
+                  <Select
+                    value={selectedProductId}
+                    onChange={(event) =>
+                      handleProductChange(event.target.value)
+                    }
+                    disabled={isLoadingProducts}
+                  >
+                    <option value="">
+                      {isLoadingProducts
+                        ? "Carregando produtos..."
+                        : "Selecione"}
+                    </option>
+
+                    {products.map((product) => (
+                      <option key={product._id} value={product._id}>
+                        {product.name} — {product.internalSku}
+                        {product.erpCategoryName
+                          ? ` — ${product.erpCategoryName}`
+                          : ""}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </>
+            )}
+
+            <Field>
+              <FieldLabel>Title</FieldLabel>
+              <Input
+                type="text"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel>Descrição</FieldLabel>
+              <Input
+                type="text"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+              />
+            </Field>
+
             <Field>
               <FieldLabel>Preço</FieldLabel>
               <Input
                 type="number"
-                value={formPrice}
-                onChange={(e) => setFormPrice(Number(e.target.value))}
+                value={price}
+                onChange={(event) => setPrice(Number(event.target.value))}
                 min={0}
                 step="0.01"
               />
@@ -277,43 +298,65 @@ export function CreateAnnouncementModal({
               <FieldLabel>Estoque</FieldLabel>
               <Input
                 type="number"
-                value={formStock}
-                onChange={(e) => setFormStock(Number(e.target.value))}
+                value={stock}
+                onChange={(event) => setStock(Number(event.target.value))}
                 min={0}
                 step="1"
               />
             </Field>
+
+            <Field>
+              <FieldLabel>Imagem</FieldLabel>
+              <Input
+                type="text"
+                value={url}
+                onChange={(event) => setUrl(event.target.value)}
+                placeholder="URL da imagem"
+                min={0}
+              />
+            </Field>
           </FieldGrid>
 
-          {!marketplace ? (
-            <EmptyHint>Selecione um marketplace para carregar os campos.</EmptyHint>
-          ) : loadingFields ? (
+          <Divider />
+
+
+          {!selectedMarketplace ? (
+            <EmptyHint>
+              Selecione um marketplace para carregar os campos.
+            </EmptyHint>
+          ) : isLoadingMarketplaceFields ? (
             <EmptyHint>Carregando campos do marketplace...</EmptyHint>
-          ) : fields.length > 0 ? (
+          ) : marketplaceFields.length > 0 ? (
             <>
               <EmptyHint>
-                <b>Campos do marketplace</b> — preencha somente os dados do anúncio
-                para <b> {marketplace.replace("_", " ")}</b>.
+                <b>Campos do marketplace</b> — preencha os dados do anúncio para{" "}
+                <b>{selectedMarketplace.replace("_", " ")}</b>.
               </EmptyHint>
 
               <FieldGrid>
                 <MarketplaceConfigForm
-                  fields={fields}
-                  value={formConfig}
-                  onChange={setFormConfig}
-                  missingKeys={missingKeys}
+                  fields={marketplaceFields}
+                  value={configuration}
+                  onChange={setConfiguration}
+                  missingKeys={missingFieldKeys}
                 />
               </FieldGrid>
             </>
           ) : (
-            <EmptyHint>Nenhum campo configurado para este marketplace.</EmptyHint>
+            <EmptyHint>
+              Nenhum campo configurado para este marketplace.
+            </EmptyHint>
           )}
         </ModalBody>
 
         <ModalFooter>
           <BtnDanger onClick={closeModal}>Cancelar</BtnDanger>
-          <BtnPrimary onClick={handleCreate} disabled={loading || loadingFields}>
-            {loading ? "Criando..." : "Criar anúncio"}
+
+          <BtnPrimary
+            onClick={handleCreateAnnouncement}
+            disabled={isCreatingAnnouncement || isLoadingMarketplaceFields}
+          >
+            {isCreatingAnnouncement ? "Criando..." : "Criar anúncio"}
           </BtnPrimary>
         </ModalFooter>
       </ModalCard>
