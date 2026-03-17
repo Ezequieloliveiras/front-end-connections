@@ -1,27 +1,46 @@
-import { CategoryLinkItem, MarketplaceKey } from "@/app/components/Announcement/_components/category/CategoryLinkScreen"
-import { MARKETPLACES } from "@/app/components/Announcement/_components/category/categoryRoutes/categoryRoutes"
-import { AnnouncementFieldConfig, CategoryFieldsResponse, CategoryOption, ErpCategoryOption, PropsEditCategoryLinkModal } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal"
-import { normalizeMarketplaceFields } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields"
-
+import { useEffect, useMemo, useState } from "react"
 import { useToast } from "@/app/components/Toast/Toast"
 import { api } from "@/app/services/api"
 import { getCategoriesERP } from "@/app/services/category/category.service"
-import { useEffect, useMemo, useState } from "react"
+
+import {
+    CategoryLinkItem,
+    MarketplaceKey,
+} from "@/app/components/Announcement/_components/category/CategoryLinkScreen"
+import { MARKETPLACES } from "@/app/components/Announcement/_components/category/categoryRoutes/categoryRoutes"
+import {
+    AnnouncementFieldConfig,
+    CategoryFieldsResponse,
+    CategoryOption,
+    ErpCategoryOption,
+} from "@/app/components/Announcement/_components/category/EditCategoryLinkModal"
+import { normalizeMarketplaceFields } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields"
 
 type UseCategoryStatesProps = {
-  link: CategoryLinkItem | null
+    link: CategoryLinkItem | null
 }
+
+type ChildrenCategoriesResponse =
+    | CategoryOption[]
+    | {
+        children_categories?: CategoryOption[]
+        categories?: CategoryOption[]
+        results?: CategoryOption[]
+        data?: CategoryOption[]
+    }
 
 export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
     const { pushToast } = useToast()
 
     const [saving, setSaving] = useState(false)
     const [erpCategories, setErpCategories] = useState<ErpCategoryOption[]>([])
-    const [marketplaceCategories, setMarketplaceCategories] = useState<CategoryOption[]>([])
-    const [loadingMarketplaceCategories, setLoadingMarketplaceCategories] = useState(false)
+    const [loadingMarketplaceCategories, setLoadingMarketplaceCategories] =
+        useState(false)
 
     const [erpCategoryId, setErpCategoryId] = useState(link?.erpCategoryId || "")
-    const [erpCategoryName, setErpCategoryName] = useState(link?.erpCategoryName || "")
+    const [erpCategoryName, setErpCategoryName] = useState(
+        link?.erpCategoryName || ""
+    )
     const [marketplace, setMarketplace] = useState<MarketplaceKey | "">(
         link?.marketplace || ""
     )
@@ -31,6 +50,10 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
     const [marketplaceCategoryName, setMarketplaceCategoryName] = useState(
         link?.marketplaceCategoryName || ""
     )
+
+    const [categoryLevels, setCategoryLevels] = useState<CategoryOption[][]>([])
+    console.log(categoryLevels)
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
 
     const selectedMarketplaceConfig = useMemo(() => {
         return MARKETPLACES.find((item) => item.key === marketplace) || null
@@ -49,16 +72,152 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         selectedOptionalFieldIds: [],
     })
 
+    const resetFieldConfig = () => {
+        setFieldConfig({
+            marketplace: "",
+            marketplaceCategoryId: "",
+            basicFields: ["title", "description", "price"],
+            fieldsRequired: [],
+            fieldsByCategory: [],
+            selectedOptionalFieldIds: [],
+        })
+    }
+
+    const normalizeCategoryList = (input: any): CategoryOption[] => {
+        const list =
+            input?.children ||
+            input?.children_categories ||
+            input?.categories ||
+            input?.results ||
+            input?.data?.children ||
+            input?.data?.children_categories ||
+            input?.data?.categories ||
+            input?.data?.results ||
+            input?.data ||
+            input
+
+        if (!Array.isArray(list)) {
+            return []
+        }
+
+        return list
+            .map((item: any) => ({
+                id: String(item?.id ?? ""),
+                name: String(item?.name ?? ""),
+            }))
+            .filter((item: CategoryOption) => item.id && item.name)
+    }
+
+    const getChildrenCategories = async (categoryId: string) => {
+        const { data } = await api.get(`/meli/categories/${categoryId}`)
+        console.log("children response raw", data)
+
+        const children = normalizeCategoryList(data)
+
+        console.log("children normalized", children)
+
+        return children
+    }
+
+    const loadRootMarketplaceCategories = async (marketplaceKey: MarketplaceKey) => {
+        const config = MARKETPLACES.find((item) => item.key === marketplaceKey)
+        if (!config) return
+
+        try {
+            setLoadingMarketplaceCategories(true)
+
+            const { data } = await api.get(config.categoryRoute)
+            const rootCategories = normalizeCategoryList(data)
+
+            setCategoryLevels(rootCategories.length > 0 ? [rootCategories] : [])
+            setSelectedCategoryIds([])
+            setMarketplaceCategoryId("")
+            setMarketplaceCategoryName("")
+            setConfigOpen(false)
+            resetFieldConfig()
+        } catch (err: any) {
+            console.error(err)
+            pushToast(
+                "error",
+                err?.response?.data?.message ||
+                `Erro ao listar categorias de ${config.label}.`
+            )
+
+            setCategoryLevels([])
+            setSelectedCategoryIds([])
+            setMarketplaceCategoryId("")
+            setMarketplaceCategoryName("")
+            setConfigOpen(false)
+            resetFieldConfig()
+        } finally {
+            setLoadingMarketplaceCategories(false)
+        }
+    }
+
+    const handleCategoryLevelChange = async (levelIndex: number, value: string) => {
+        const currentOptions = categoryLevels[levelIndex] || []
+        const selectedCategory = currentOptions.find((item) => item.id === value)
+
+        const nextSelectedIds = [...selectedCategoryIds.slice(0, levelIndex), value]
+        const nextLevels = categoryLevels.slice(0, levelIndex + 1)
+
+        if (!value) {
+            setSelectedCategoryIds(selectedCategoryIds.slice(0, levelIndex))
+            setCategoryLevels(nextLevels)
+            setMarketplaceCategoryId("")
+            setMarketplaceCategoryName("")
+            setConfigOpen(false)
+            resetFieldConfig()
+            return
+        }
+
+        setSelectedCategoryIds(nextSelectedIds)
+        setMarketplaceCategoryId("")
+        setMarketplaceCategoryName("")
+        setConfigOpen(false)
+        resetFieldConfig()
+
+        try {
+            setLoadingMarketplaceCategories(true)
+
+            const children = await getChildrenCategories(value)
+
+            if (children.length > 0) {
+                setCategoryLevels([...nextLevels, children])
+                return
+            }
+
+            setCategoryLevels(nextLevels)
+            setMarketplaceCategoryId(value)
+            setMarketplaceCategoryName(selectedCategory?.name || "")
+        } catch (err: any) {
+            console.error(err)
+            pushToast(
+                "error",
+                err?.response?.data?.message || "Erro ao buscar subcategorias."
+            )
+
+            setCategoryLevels(nextLevels)
+            setMarketplaceCategoryId("")
+            setMarketplaceCategoryName("")
+        } finally {
+            setLoadingMarketplaceCategories(false)
+        }
+    }
+
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoadingFieldConfig(true)
 
-                const { data } = await api.post<CategoryFieldsResponse>(`/category/fields`, {
-                    marketplace,
-                    marketplaceCategoryId,
-                })
-                console.log("marketplaceCategoryId", marketplaceCategoryId)
+                const { data } = await api.post<CategoryFieldsResponse>(
+                    `/category/fields`,
+                    {
+                        marketplace,
+                        marketplaceCategoryId,
+                    }
+                )
+
                 const normalized = normalizeMarketplaceFields({
                     marketplace: String(marketplace),
                     response: data,
@@ -84,14 +243,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
             } catch (error) {
                 console.error(error)
                 pushToast("error", "Erro ao buscar campos da categoria.")
-                setFieldConfig({
-                    marketplace: "",
-                    marketplaceCategoryId: "",
-                    basicFields: ["title", "description", "price"],
-                    fieldsRequired: [],
-                    fieldsByCategory: [],
-                    selectedOptionalFieldIds: [],
-                })
+                resetFieldConfig()
             } finally {
                 setLoadingFieldConfig(false)
             }
@@ -100,14 +252,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         if (marketplace && marketplaceCategoryId) {
             fetchData()
         } else {
-            setFieldConfig({
-                marketplace: "",
-                marketplaceCategoryId: "",
-                basicFields: ["title", "description", "price"],
-                fieldsRequired: [],
-                fieldsByCategory: [],
-                selectedOptionalFieldIds: [],
-            })
+            resetFieldConfig()
             setConfigOpen(false)
         }
     }, [marketplace, marketplaceCategoryId])
@@ -115,11 +260,16 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
     useEffect(() => {
         const fetchErpCategories = async () => {
             try {
-                const { data } = await getCategoriesERP()
-                setErpCategories(Array.isArray(data) ? data : [])
+                const response = await getCategoriesERP()
+                const list = Array.isArray(response) ? response : response?.data
+
+                setErpCategories(Array.isArray(list) ? list : [])
             } catch (err: any) {
                 console.error(err)
-                pushToast("error", err?.response?.data?.message || "Erro ao listar categorias RP.")
+                pushToast(
+                    "error",
+                    err?.response?.data?.message || "Erro ao listar categorias RP."
+                )
             }
         }
 
@@ -127,32 +277,17 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
     }, [])
 
     useEffect(() => {
-        if (marketplace) {
-            const fetchMarketplaceCategories = async (marketplaceKey: MarketplaceKey) => {
-                const config = MARKETPLACES.find((item) => item.key === marketplaceKey)
-                if (!config) return
-
-                try {
-                    setLoadingMarketplaceCategories(true)
-
-                    const { data } = await api.get<CategoryOption[]>(config.categoryRoute)
-                    setMarketplaceCategories(Array.isArray(data) ? data : [])
-                } catch (err: any) {
-                    console.error(err)
-                    pushToast(
-                        "error",
-                        err?.response?.data?.message ||
-                        `Erro ao listar categorias de ${config.label}.`
-                    )
-                } finally {
-                    setLoadingMarketplaceCategories(false)
-                }
-            }
-
-            fetchMarketplaceCategories(marketplace)
-        } else {
-            setMarketplaceCategories([])
+        if (!marketplace) {
+            setCategoryLevels([])
+            setSelectedCategoryIds([])
+            setMarketplaceCategoryId("")
+            setMarketplaceCategoryName("")
+            setConfigOpen(false)
+            resetFieldConfig()
+            return
         }
+
+        loadRootMarketplaceCategories(marketplace)
     }, [marketplace])
 
     return {
@@ -169,7 +304,9 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         saving,
         fieldConfig,
         loadingMarketplaceCategories,
-        marketplaceCategories,
+
+        categoryLevels,
+        selectedCategoryIds,
 
         setErpCategoryId,
         setErpCategoryName,
@@ -180,7 +317,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         setSavingFieldConfig,
         setSaving,
         setFieldConfig,
-        
-    }
 
+        handleCategoryLevelChange,
+    }
 }

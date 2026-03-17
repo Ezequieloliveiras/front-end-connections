@@ -31,7 +31,7 @@ import {
   FooterActions,
   RemoveButton,
   CancelButton,
-  SaveButton
+  SaveButton,
 } from "./styles"
 
 import { useCategoryStates } from "@/app/hooks/category/useCategoryStates"
@@ -48,6 +48,7 @@ export type AnnouncementFieldConfig = {
   fieldsByCategory: MarketplaceFieldItem[]
   selectedOptionalFieldIds: MarketplaceFieldItem[]
 }
+
 export type CategoryOption = {
   id: string
   name: string
@@ -70,7 +71,11 @@ export type CategoryFieldsResponse = {
   fields: MarketplaceFieldItem[]
 }
 
-export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCategoryLinkModal) {
+export function EditCategoryLinkModal({
+  link,
+  onClose,
+  onSaved,
+}: PropsEditCategoryLinkModal) {
   const statesCategory = useCategoryStates({ link })
 
   const {
@@ -79,6 +84,7 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
     erpCategoryName,
     marketplace,
     marketplaceCategoryId,
+    marketplaceCategoryName,
     selectedMarketplaceConfig,
     configOpen,
     loadingFieldConfig,
@@ -86,14 +92,14 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
     saving,
     fieldConfig,
     loadingMarketplaceCategories,
-    marketplaceCategories,
+    categoryLevels,
+    selectedCategoryIds,
 
     setErpCategoryId,
     setErpCategoryName,
     setMarketplace,
-    setMarketplaceCategoryId,
-    setMarketplaceCategoryName,
     setConfigOpen,
+    handleCategoryLevelChange,
   } = statesCategory
 
   const {
@@ -110,7 +116,10 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
 
   return (
     <Overlay onMouseDown={onClose}>
-      <ModalScroll className="modal-scroll" onMouseDown={(e) => e.stopPropagation()}>
+      <ModalScroll
+        className="modal-scroll"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
         <Header>
           <Title>
             {link ? "Editar vínculo de categoria" : "Novo vínculo de categoria"}
@@ -126,7 +135,10 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
             <SelectField
               value={erpCategoryId}
               onChange={(e) => {
-                const selected = erpCategories.find((item) => item.id === e.target.value)
+                const selected = erpCategories.find(
+                  (item) => item.id === e.target.value
+                )
+
                 setErpCategoryId(e.target.value)
                 setErpCategoryName(selected?.name || "")
               }}
@@ -148,8 +160,6 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
               onChange={(e) => {
                 const value = e.target.value as MarketplaceKey | ""
                 setMarketplace(value)
-                setMarketplaceCategoryId("")
-                setMarketplaceCategoryName("")
               }}
               disabled={saving}
             >
@@ -176,28 +186,50 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
               <Label>
                 Categoria {selectedMarketplaceConfig?.label || "do marketplace"}
               </Label>
-              <SelectField
-                value={marketplaceCategoryId}
-                onChange={(e) => {
-                  const selected = marketplaceCategories.find(
-                    (item) => item.id === e.target.value
-                  )
-                  setMarketplaceCategoryId(e.target.value)
-                  setMarketplaceCategoryName(selected?.name || "")
-                }}
-                disabled={!marketplace || loadingMarketplaceCategories || saving}
-              >
-                <option value="">
-                  {loadingMarketplaceCategories ? "Carregando categorias..." : "Selecione"}
-                </option>
-                {marketplaceCategories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </SelectField>
+
+              {!marketplace ? (
+                <SelectField disabled>
+                  <option value="">Selecione um marketplace</option>
+                </SelectField>
+              ) : (
+                <div style={{ display: "grid", gap: 12 }}>
+                  {categoryLevels.map((categories, index) => (
+                    <div key={index}>
+                      <Label style={{ display: "block", marginBottom: 6 }}>
+                        {index === 0 ? "Categoria" : `Subcategoria ${index}`}
+                      </Label>
+
+                      <SelectField
+                        value={selectedCategoryIds[index] || ""}
+                        onChange={(e) => handleCategoryLevelChange(index, e.target.value)}
+                        disabled={saving || loadingMarketplaceCategories}
+                      >
+                        <option value="">
+                          {index === 0 ? "Selecione" : "Selecione a subcategoria"}
+                        </option>
+
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </SelectField>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </LinkGrid>
+
+          {marketplaceCategoryId && (
+            <div>
+              <Label>Categoria final para salvar/publicar</Label>
+              <InputField
+                value={`${marketplaceCategoryName} (${marketplaceCategoryId})`}
+                disabled
+              />
+            </div>
+          )}
 
           {marketplace && marketplaceCategoryId && (
             <ConfigCard>
@@ -232,7 +264,9 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
                           <CheckboxItem>
                             <input
                               type="checkbox"
-                              checked={fieldConfig.basicFields.includes("description")}
+                              checked={fieldConfig.basicFields.includes(
+                                "description"
+                              )}
                               onChange={() => toggleBasicField("description")}
                             />
                             <span>Descrição</span>
@@ -278,9 +312,10 @@ export function EditCategoryLinkModal({ link, onClose, onSaved }: PropsEditCateg
                         ) : (
                           <CheckboxGrid>
                             {fieldConfig.fieldsByCategory.map((field) => {
-                              const checked = fieldConfig.selectedOptionalFieldIds.some(
-                                (item) => item.id === field.id
-                              )
+                              const checked =
+                                fieldConfig.selectedOptionalFieldIds.some(
+                                  (item) => item.id === field.id
+                                )
 
                               return (
                                 <CheckboxItem key={field.id}>
