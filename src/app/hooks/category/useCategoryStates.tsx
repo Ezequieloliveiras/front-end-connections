@@ -38,21 +38,11 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         useState(false)
 
     const [erpCategoryId, setErpCategoryId] = useState(link?.erpCategoryId || "")
-    const [erpCategoryName, setErpCategoryName] = useState(
-        link?.erpCategoryName || ""
-    )
-    const [marketplace, setMarketplace] = useState<MarketplaceKey | "">(
-        link?.marketplace || ""
-    )
-    const [marketplaceCategoryId, setMarketplaceCategoryId] = useState(
-        link?.marketplaceCategoryId || ""
-    )
-    const [marketplaceCategoryName, setMarketplaceCategoryName] = useState(
-        link?.marketplaceCategoryName || ""
-    )
-
+    const [erpCategoryName, setErpCategoryName] = useState(link?.erpCategoryName || "")
+    const [marketplace, setMarketplace] = useState<MarketplaceKey | "">(link?.marketplace || "")
+    const [marketplaceCategoryId, setMarketplaceCategoryId] = useState(link?.marketplaceCategoryId || "")
+    const [marketplaceCategoryName, setMarketplaceCategoryName] = useState(link?.marketplaceCategoryName || "")
     const [categoryLevels, setCategoryLevels] = useState<CategoryOption[][]>([])
-    console.log(categoryLevels)
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([])
 
     const selectedMarketplaceConfig = useMemo(() => {
@@ -217,7 +207,6 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
                         marketplaceCategoryId,
                     }
                 )
-
                 const normalized = normalizeMarketplaceFields({
                     marketplace: String(marketplace),
                     response: data,

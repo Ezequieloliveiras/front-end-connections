@@ -17,6 +17,11 @@ type MercadoLivreField = {
       name: string
       metadata?: Record<string, any>
     }>
+    tags?: {
+      required?: boolean
+      conditional_required?: boolean
+      [key: string]: any
+    }
     [key: string]: any
   }
 }
@@ -42,11 +47,16 @@ function normalizeField(field: MercadoLivreField): MarketplaceFieldItem {
     ? field.values
     : []
 
+  const isRequired =
+    Boolean(field?.required) ||
+    Boolean(field?.raw?.tags?.required) ||
+    Boolean(field?.raw?.tags?.conditional_required)
+
   return {
     id: String(field?.id ?? ""),
     name: String(field?.name ?? ""),
     type: String(field?.type ?? field?.raw?.value_type ?? "string"),
-    required: Boolean(field?.required),
+    required: isRequired,
     raw: field?.raw ?? {},
     options: optionsSource.map(normalizeOption),
   }

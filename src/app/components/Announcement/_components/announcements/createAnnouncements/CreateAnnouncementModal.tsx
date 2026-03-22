@@ -55,6 +55,11 @@ export function CreateAnnouncementModal({
   const [selectedProductId, setSelectedProductId] = useState(productId || "")
   const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null)
   const [dataCategory, setDataCategory] = useState<FieldConfigResponseItem[] | null>(null)
+  const [shippingMode, setShippingMode] = useState<string>("me2")
+  const [shippingOptions, setShippingOptions] = useState<
+    { label: string; value: string }[]
+  >([])
+
 
   useEffect(() => {
     async function fetchProducts() {
@@ -137,6 +142,39 @@ export function CreateAnnouncementModal({
     ])
   }
 
+  useEffect(() => {
+    async function loadShipping() {
+      try {
+        const { data } = await api.get("/meli/shipping/preferences")
+
+        const options = data.modes.map((mode: string) => ({
+          value: mode,
+          label:
+            mode === "me2"
+              ? "Mercado Envios"
+              : mode === "custom"
+                ? "Frete personalizado"
+                : mode === "not_specified"
+                  ? "Não especificado"
+                  : mode,
+        }))
+
+        setShippingOptions(options)
+        setShippingMode(data.defaultMode || "me2")
+      } catch (err) {
+        console.error(err)
+
+        // fallback
+        setShippingOptions([
+          { label: "Mercado Envios", value: "me2" },
+        ])
+        setShippingMode("me2")
+      }
+    }
+
+    loadShipping()
+  }, [])
+
   function handleMarketplaceChange(marketplaceValue: string) {
     setSelectedMarketplace(marketplaceValue)
     setConfiguration({})
@@ -177,7 +215,8 @@ export function CreateAnnouncementModal({
         description,
         price: safeNumber(price),
         stock: safeNumber(stock),
-        data: configuration,
+        shippingMode,
+        config: configuration,
         marketplaceCategoryId,
         images: url,
       }
@@ -303,6 +342,20 @@ export function CreateAnnouncementModal({
                 min={0}
                 step="1"
               />
+            </Field>
+
+            <Field>
+              <FieldLabel>Envio</FieldLabel>
+              <Select
+                value={shippingMode}
+                onChange={(e) => setShippingMode(e.target.value)}
+              >
+                {shippingOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </Select>
             </Field>
 
             <Field>
