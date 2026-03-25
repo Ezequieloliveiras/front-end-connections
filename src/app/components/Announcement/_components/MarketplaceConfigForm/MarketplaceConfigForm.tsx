@@ -1,6 +1,5 @@
-import React from "react"
 import { Field, FieldLabel, Input, Select } from "./styles"
-import { FieldDef } from "../announcements/types"
+import { FieldDef } from "@/app/hooks/announcement/createAnnoucement/types"
 
 type ConfigObject = Record<string, unknown>
 

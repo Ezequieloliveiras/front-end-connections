@@ -24,17 +24,9 @@ import { MARKETPLACES } from "../../constants"
 import { statusLabel } from "@/app/utils/announcements/status"
 import { formatBRL } from "@/app/utils/announcements/formatBRL"
 import { Announcement, AnnouncementStatus } from "@/app/types/announcements/types"
+import { AnnouncementsProps } from "./types"
 
-type ModalMode = "edit" | "publish" | "unpublish"
-
-type Props = {
-    openModalFor: (ann: Announcement, mode: ModalMode) => void
-    safeNumber: (value: unknown) => number
-    setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-    pageItems: Announcement[]
-}
-
-export function Announcements({ openModalFor, safeNumber, setAnnouncements, pageItems }: Props) {
+export function Announcements({ openModalFor, safeNumber, setAnnouncements, pageItems }: AnnouncementsProps) {
     const { pushToast } = useToast()
 
     const upsertByIdLocal = (id: string, patch: Partial<Announcement>) => {

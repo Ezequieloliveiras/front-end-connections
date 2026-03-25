@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react"
 import {
   BtnPrimary,
   BtnDanger,
@@ -14,234 +13,57 @@ import {
   Select,
   Divider,
 } from "../styles"
-import { api } from "@/app/services/api"
-import { useToast } from "@/app/components/Toast/Toast"
-import { safeNumber } from "@/app/utils/safeNumber"
-import {
-  Announcement,
-  AnnouncementConfig,
-} from "@/app/types/announcements/types"
+
 import { MarketplaceConfigForm } from "../../MarketplaceConfigForm/MarketplaceConfigForm"
-import { FieldDef } from "../types"
-import {
-  buildFieldsFromConfig,
-  CreateAnnouncementModalProps,
-  FieldConfigResponseItem,
-  ProductOption
-} from "./BuildFieldsFromConfig"
-import { CategoryOption } from "../../category/EditCategoryLinkModal"
+import { CreateAnnouncementModalProps, } from "./types"
+import { useCreateAnnouncementStates } from "@/app/hooks/announcement/createAnnoucement/useCreateAnnouncementStates"
+import { useHandlersCreateAnnouncement } from "@/app/hooks/announcement/createAnnoucement/useHandlersCreateAnnouncement"
 
 export function CreateAnnouncementModal({
   productId,
   closeModal,
   setAnnouncements,
 }: CreateAnnouncementModalProps) {
-  const { pushToast } = useToast()
 
-  const [selectedMarketplace, setSelectedMarketplace] = useState("")
-  const [marketplaceFields, setMarketplaceFields] = useState<FieldDef[]>([])
-  const [isLoadingMarketplaceFields, setIsLoadingMarketplaceFields] = useState(false)
-  const [price, setPrice] = useState<number>(0)
-  const [stock, setStock] = useState<number>(0)
-  const [description, setDescription] = useState("")
-  const [title, setTitle] = useState("")
-  const [url, setUrl] = useState("")
-  const [configuration, setConfiguration] = useState<Partial<AnnouncementConfig>>({})
-  const [isCreatingAnnouncement, setIsCreatingAnnouncement] = useState(false)
-  const [missingFieldKeys, setMissingFieldKeys] = useState<string[]>([])
-  const [products, setProducts] = useState<ProductOption[]>([])
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
-  const [productSearchText, setProductSearchText] = useState("")
-  const [selectedProductId, setSelectedProductId] = useState(productId || "")
-  const [selectedProduct, setSelectedProduct] = useState<ProductOption | null>(null)
-  const [dataCategory, setDataCategory] = useState<FieldConfigResponseItem[] | null>(null)
-  const [shippingMode, setShippingMode] = useState<string>("me2")
-  const [shippingOptions, setShippingOptions] = useState<
-    { label: string; value: string }[]
-  >([])
+  const states = useCreateAnnouncementStates({ productId })
 
+  const {
+    selectedMarketplace,
+    marketplaceFields,
+    isLoadingMarketplaceFields,
+    price,
+    stock,
+    description,
+    title,
+    url,
+    configuration,
+    isCreatingAnnouncement,
+    missingFieldKeys,
+    products,
+    isLoadingProducts,
+    productSearchText,
+    selectedProductId,
+    shippingMode,
+    shippingOptions,
+    setPrice,
+    setStock,
+    setDescription,
+    setTitle,
+    setUrl,
+    setConfiguration,
+    setProductSearchText,
+    setShippingMode,
+  } = states
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        setIsLoadingProducts(true)
-
-        const { data } = await api.get<ProductOption[]>("/product/list", {
-          params: {
-            search: productSearchText,
-          },
-        })
-
-        setProducts(Array.isArray(data) ? data : [])
-
-        if (!selectedProductId) {
-          return
-        }
-
-        const currentSelectedProduct = (Array.isArray(data) ? data : []).find(
-          (product) => product._id === selectedProductId
-        )
-
-        if (currentSelectedProduct) {
-          setSelectedProduct(currentSelectedProduct)
-        }
-      } catch (error) {
-        console.error(error)
-      } finally {
-        setIsLoadingProducts(false)
-      }
-    }
-
-    const timeout = setTimeout(() => {
-      fetchProducts()
-    }, 400)
-
-    return () => clearTimeout(timeout)
-  }, [productSearchText, selectedProductId])
-
-  useEffect(() => {
-    async function fetchMarketplaceFields() {
-      try {
-        if (!selectedProduct?.erpCategoryId || !selectedMarketplace) {
-          setMarketplaceFields([])
-          return
-        }
-
-        setIsLoadingMarketplaceFields(true)
-
-        const response = await api.get<FieldConfigResponseItem[]>(
-          `/announcements/field-config/fields-category/${selectedProduct.erpCategoryId}/${selectedMarketplace}`
-        )
-        console.log('response', response)
-        setDataCategory(response.data)
-        const firstConfig = Array.isArray(response.data) ? response.data[0] : undefined
-        const normalizedFields = buildFieldsFromConfig(firstConfig)
-
-        setMarketplaceFields(normalizedFields)
-      } catch (error: any) {
-        console.error(error)
-        setMarketplaceFields([])
-
-        pushToast(
-          "error",
-          error?.response?.data?.message ||
-          "Erro ao buscar configuração de campos."
-        )
-      } finally {
-        setIsLoadingMarketplaceFields(false)
-      }
-    }
-
-    fetchMarketplaceFields()
-  }, [selectedProduct?.erpCategoryId, selectedMarketplace, pushToast])
-
-  function addAnnouncementToList(newAnnouncement: Announcement) {
-    setAnnouncements((currentAnnouncements) => [
-      newAnnouncement,
-      ...currentAnnouncements,
-    ])
-  }
-
-  useEffect(() => {
-    async function loadShipping() {
-      try {
-        const { data } = await api.get("/meli/shipping/preferences")
-
-        const options = data.modes.map((mode: string) => ({
-          value: mode,
-          label:
-            mode === "me2"
-              ? "Mercado Envios"
-              : mode === "custom"
-                ? "Frete personalizado"
-                : mode === "not_specified"
-                  ? "Não especificado"
-                  : mode,
-        }))
-
-        setShippingOptions(options)
-        setShippingMode(data.defaultMode || "me2")
-      } catch (err) {
-        console.error(err)
-
-        // fallback
-        setShippingOptions([
-          { label: "Mercado Envios", value: "me2" },
-        ])
-        setShippingMode("me2")
-      }
-    }
-
-    loadShipping()
-  }, [])
-
-  function handleMarketplaceChange(marketplaceValue: string) {
-    setSelectedMarketplace(marketplaceValue)
-    setConfiguration({})
-    setMissingFieldKeys([])
-    setMarketplaceFields([])
-  }
-
-  function handleProductChange(productIdValue: string) {
-    setSelectedProductId(productIdValue)
-
-    const foundProduct = products.find((product) => product._id === productIdValue)
-
-    setSelectedProduct(foundProduct || null)
-    setConfiguration({})
-    setMissingFieldKeys([])
-    setMarketplaceFields([])
-  }
-
-  async function handleCreateAnnouncement() {
-    if (!selectedProductId) {
-      pushToast("error", "Selecione um produto.")
-      return
-    }
-
-    if (!selectedMarketplace) {
-      pushToast("error", "Selecione um marketplace.")
-      return
-    }
-
-    try {
-      setIsCreatingAnnouncement(true)
-      setMissingFieldKeys([])
-      const marketplaceCategoryId = dataCategory?.[0]?.marketplaceCategoryId ?? null
-      const payload = {
-        productId: selectedProductId,
-        marketplace: selectedMarketplace,
-        title,
-        description,
-        price: safeNumber(price),
-        stock: safeNumber(stock),
-        shippingMode,
-        config: configuration,
-        marketplaceCategoryId,
-        images: url,
-      }
-
-      const { data } = await api.post<Announcement>("/announcements", payload)
-
-      addAnnouncementToList(data)
-      pushToast("success", "Anúncio criado com sucesso.")
-      closeModal()
-    } catch (error: any) {
-      console.error(error)
-
-      const apiMissingKeys = error?.response?.data?.missingKeys
-      const apiMessage =
-        error?.response?.data?.message || "Erro ao criar anúncio."
-
-      if (Array.isArray(apiMissingKeys)) {
-        setMissingFieldKeys(apiMissingKeys)
-      }
-
-      pushToast("error", apiMessage)
-    } finally {
-      setIsCreatingAnnouncement(false)
-    }
-  }
+  const {
+    handleMarketplaceChange,
+    handleProductChange,
+    handleCreateAnnouncement
+  } = useHandlersCreateAnnouncement({
+    ...states,
+    closeModal,
+    setAnnouncements,
+  })
 
   return (
     <ModalOverlay onMouseDown={closeModal}>
@@ -390,7 +212,12 @@ export function CreateAnnouncementModal({
                 <MarketplaceConfigForm
                   fields={marketplaceFields}
                   value={configuration}
-                  onChange={setConfiguration}
+                  onChange={(updatedValue) =>
+                    setConfiguration((previousValue) => ({
+                      ...previousValue,
+                      ...updatedValue,
+                    }))
+                  }
                   missingKeys={missingFieldKeys}
                 />
               </FieldGrid>

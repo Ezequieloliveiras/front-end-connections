@@ -1,14 +1,9 @@
 import { useState } from "react"
 import { BtnPrimary } from "../styles"
 import { CreateAnnouncementModal } from "./CreateAnnouncementModal"
-import { Announcement } from "@/app/types/announcements/types"
+import { CreateAnnouncementBarProps } from "./types"
 
-type Props = {
-  productId: string | undefined
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-}
-
-export function CreateAnnouncementBar({ productId, setAnnouncements }: Props) {
+export function CreateAnnouncementBar({ productId, setAnnouncements }: CreateAnnouncementBarProps) {
   const [open, setOpen] = useState(false)
 
   return (

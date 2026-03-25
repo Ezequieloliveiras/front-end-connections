@@ -1,34 +1,10 @@
-export type FieldOption = {
-  label: string
-  value: string | number | boolean
-}
+import { Announcement } from "@/app/types/announcements/types"
 
-export type FieldType =
-  | "text"
-  | "number"
-  | "select"
-  | "checkbox"
-  | "textarea"
-  | "array"
-  | "boolean"
-  | "list"
-  | "number_unit"
+export type ModalMode = "edit" | "publish" | "unpublish"
 
-export type FieldDef = {
-  key: string
-  label: string
-  type: FieldType
-  required?: boolean
-  placeholder?: string
-  options?: FieldOption[]
-  values?: FieldOption[]
-  raw?: Record<string, any>
-  info?: string
-  id?: string
-  name?: string
-}
-
-export type GetAnnouncementFieldsResponse = {
-  marketplace: string
-  fields: FieldDef[]
+export type AnnouncementsProps = {
+    openModalFor: (ann: Announcement, mode: ModalMode) => void
+    safeNumber: (value: unknown) => number
+    setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
+    pageItems: Announcement[]
 }
