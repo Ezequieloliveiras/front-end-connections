@@ -1,6 +1,5 @@
-import { CategoryLinkItem, MarketplaceKey } from "./CategoryLinkScreen"
-import type { MarketplaceFieldItem } from "./normalizers/marketplaceFields/types"
-import { MARKETPLACES } from "./categoryRoutes/categoryRoutes"
+import { MarketplaceKey } from "../normalizers/marketplaceFields/categoryLinkScreen/types"
+import { MARKETPLACES } from "../categoryRoutes/categoryRoutes"
 
 import {
   Overlay,
@@ -36,40 +35,8 @@ import {
 
 import { useCategoryStates } from "@/app/hooks/category/useCategoryStates"
 import { useHandlers } from "@/app/hooks/category/useHandlers"
-
-type BasicFieldKey = "title" | "description" | "price"
-
-export type AnnouncementFieldConfig = {
-  entityId?: string
-  marketplace: string
-  marketplaceCategoryId: string
-  basicFields: BasicFieldKey[]
-  fieldsRequired: MarketplaceFieldItem[]
-  fieldsByCategory: MarketplaceFieldItem[]
-  selectedOptionalFieldIds: MarketplaceFieldItem[]
-}
-
-export type CategoryOption = {
-  id: string
-  name: string
-}
-
-export type ErpCategoryOption = {
-  id: string
-  name: string
-}
-
-export type PropsEditCategoryLinkModal = {
-  link: CategoryLinkItem | null
-  onClose: () => void
-  onSaved: () => void
-}
-
-export type CategoryFieldsResponse = {
-  marketplace: string
-  marketplaceCategoryId: string
-  fields: MarketplaceFieldItem[]
-}
+import { PropsEditCategoryLinkModal } from "./types"
+import { MarketplaceFieldItem } from "../types"
 
 export function EditCategoryLinkModal({
   link,
@@ -290,7 +257,7 @@ export function EditCategoryLinkModal({
                           <MutedText>Nenhum campo obrigatório encontrado.</MutedText>
                         ) : (
                           <CheckboxGrid>
-                            {fieldConfig.fieldsRequired.map((field) => (
+                            {fieldConfig.fieldsRequired.map((field: MarketplaceFieldItem) => (
                               <CheckboxItemRequired key={field.id}>
                                 <input type="checkbox" checked disabled />
                                 <span>
@@ -311,11 +278,10 @@ export function EditCategoryLinkModal({
                           </MutedText>
                         ) : (
                           <CheckboxGrid>
-                            {fieldConfig.fieldsByCategory.map((field) => {
-                              const checked =
-                                fieldConfig.selectedOptionalFieldIds.some(
-                                  (item) => item.id === field.id
-                                )
+                            {fieldConfig.fieldsByCategory.map((field: MarketplaceFieldItem) => {
+                              const checked = fieldConfig.selectedOptionalFieldIds.some(
+                                (item: MarketplaceFieldItem) => item.id === field.id
+                              )
 
                               return (
                                 <CheckboxItem key={field.id}>

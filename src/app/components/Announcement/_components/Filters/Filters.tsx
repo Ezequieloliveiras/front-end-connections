@@ -15,27 +15,10 @@ import {
 } from "./styles"
 
 import { useToast } from "../../../Toast/Toast"
-import { MARKETPLACES, STATUS_OPTIONS, Marketplace, AnnouncementStatus } from "../../constants"
-import { useEffect, useMemo, useState } from "react"
+import { MARKETPLACES, STATUS_OPTIONS } from "../../constants"
+import { useEffect, useState } from "react"
 import { LuSearch } from "react-icons/lu"
-
-type MarketplaceFilter = Marketplace | "all"
-type StatusFilter = AnnouncementStatus | "all"
-
-type FiltersProps = {
-    mpFilter: MarketplaceFilter
-    setMpFilter: React.Dispatch<React.SetStateAction<MarketplaceFilter>>
-
-    statusFilter: StatusFilter
-    setStatusFilter: React.Dispatch<React.SetStateAction<StatusFilter>>
-
-    search: string
-    setSearch: React.Dispatch<React.SetStateAction<string>>
-
-    filtered: unknown[] // se você tiver o tipo Announcement, troque pra Announcement[]
-
-    pageSize: number
-}
+import { FiltersProps, MarketplaceFilter, StatusFilter } from "./types"
 
 export function Filters({
     mpFilter,

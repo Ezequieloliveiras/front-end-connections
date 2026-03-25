@@ -18,6 +18,7 @@ import { MarketplaceConfigForm } from "../../MarketplaceConfigForm/MarketplaceCo
 import { CreateAnnouncementModalProps, } from "./types"
 import { useCreateAnnouncementStates } from "@/app/hooks/announcement/createAnnoucement/useCreateAnnouncementStates"
 import { useHandlersCreateAnnouncement } from "@/app/hooks/announcement/createAnnoucement/useHandlersCreateAnnouncement"
+import { AnnouncementFieldConfig } from "../../category/EditCategoryLinkModal/types"
 
 export function CreateAnnouncementModal({
   productId,
@@ -213,7 +214,7 @@ export function CreateAnnouncementModal({
                   fields={marketplaceFields}
                   value={configuration}
                   onChange={(updatedValue) =>
-                    setConfiguration((previousValue) => ({
+                    setConfiguration((previousValue: AnnouncementFieldConfig) => ({
                       ...previousValue,
                       ...updatedValue,
                     }))

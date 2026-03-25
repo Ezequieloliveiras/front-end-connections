@@ -1,6 +1,6 @@
-import { MarketplaceKey } from "@/app/components/Announcement/_components/category/CategoryLinkScreen"
+import { MarketplaceKey } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields/categoryLinkScreen/types"
 import { api } from "../api"
-import { MarketplaceFieldItem } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields/types"
+import { MarketplaceFieldItem } from "@/app/components/Announcement/_components/category/types"
 
 export type BasicFieldKey = "title" | "description" | "price"
 
@@ -40,5 +40,10 @@ export async function updateCategoryLink(linkId: string, payload: CategoryLinkPa
 
 export async function deleteCategoryLink(linkId: string) {
     const { data } = await api.delete(`/category/links/${linkId}`)
+    return data
+}
+
+export async function fetchCategoryLinks() {
+    const { data } = await api.get("/category/links")
     return data
 }

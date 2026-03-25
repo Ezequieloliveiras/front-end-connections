@@ -1,36 +1,4 @@
-import { MarketplaceFieldItem, MarketplaceFieldOption } from "./types"
-
-type MercadoLivreField = {
-  id: string
-  name: string
-  type?: string
-  required?: boolean
-  values?: Array<{
-    id: string
-    name: string
-    metadata?: Record<string, any>
-  }>
-  raw?: {
-    value_type?: string
-    values?: Array<{
-      id: string
-      name: string
-      metadata?: Record<string, any>
-    }>
-    tags?: {
-      required?: boolean
-      conditional_required?: boolean
-      [key: string]: any
-    }
-    [key: string]: any
-  }
-}
-
-type MercadoLivreResponse = {
-  marketplace?: string
-  marketplaceCategoryId?: string
-  fields?: MercadoLivreField[]
-}
+import { MarketplaceFieldItem, MarketplaceFieldOption, MercadoLivreField, MercadoLivreResponse } from "../../types"
 
 function normalizeOption(option: any): MarketplaceFieldOption {
   return {

@@ -1,4 +1,4 @@
-import { MarketplaceKey } from "../CategoryLinkScreen"
+import { MarketplaceKey } from "../normalizers/marketplaceFields/categoryLinkScreen/types"
 
 export const MARKETPLACES: {
   key: MarketplaceKey

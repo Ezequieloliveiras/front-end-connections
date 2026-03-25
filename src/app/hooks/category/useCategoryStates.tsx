@@ -6,28 +6,15 @@ import { getCategoriesERP } from "@/app/services/category/category.service"
 import {
     CategoryLinkItem,
     MarketplaceKey,
-} from "@/app/components/Announcement/_components/category/CategoryLinkScreen"
+} from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields/categoryLinkScreen/types"
 import { MARKETPLACES } from "@/app/components/Announcement/_components/category/categoryRoutes/categoryRoutes"
-import {
-    AnnouncementFieldConfig,
-    CategoryFieldsResponse,
-    CategoryOption,
-    ErpCategoryOption,
-} from "@/app/components/Announcement/_components/category/EditCategoryLinkModal"
+
 import { normalizeMarketplaceFields } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields"
+import { AnnouncementFieldConfig, CategoryFieldsResponse, CategoryOption, ErpCategoryOption } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal/types"
 
 type UseCategoryStatesProps = {
     link: CategoryLinkItem | null
 }
-
-type ChildrenCategoriesResponse =
-    | CategoryOption[]
-    | {
-        children_categories?: CategoryOption[]
-        categories?: CategoryOption[]
-        results?: CategoryOption[]
-        data?: CategoryOption[]
-    }
 
 export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
     const { pushToast } = useToast()

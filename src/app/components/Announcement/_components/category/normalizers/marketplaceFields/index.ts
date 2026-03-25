@@ -1,9 +1,5 @@
 import { normalizeMercadoLivreFields } from "./mercadoLivre"
-
-type NormalizeParams = {
-  marketplace: string
-  response: any
-}
+import { NormalizeParams } from "../../types"
 
 export function normalizeMarketplaceFields({
   marketplace,

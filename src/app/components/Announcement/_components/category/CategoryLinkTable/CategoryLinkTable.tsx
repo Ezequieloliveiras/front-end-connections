@@ -1,10 +1,5 @@
-import { CategoryLinkItem } from "./CategoryLinkScreen"
-
-type Props = {
-  links: CategoryLinkItem[]
-  loading?: boolean
-  onEdit: (link: CategoryLinkItem) => void
-}
+import { CategoryLinkItem } from "../normalizers/marketplaceFields/categoryLinkScreen/types"
+import { CategoryLinkTableProps } from "./types"
 
 const marketplaceLabels: Record<string, string> = {
   mercado_livre: "Mercado Livre",
@@ -13,7 +8,7 @@ const marketplaceLabels: Record<string, string> = {
   magalu: "Magalu",
 }
 
-export function CategoryLinkTable({ links, loading, onEdit }: Props) {
+export function CategoryLinkTable({ links, loading, onEdit }: CategoryLinkTableProps) {
   return (
     <div
       style={{
