@@ -1,17 +1,6 @@
-import { PeriodPreset, ProductOption } from "../../types"
+import { PeriodPreset } from "../../types"
 import { Container, Field, Label, Select, Input, Button } from "./styles"
-
-interface Props {
-  products: ProductOption[]
-  productId: string
-  period: PeriodPreset
-  customDays: string
-  loading: boolean
-  onProductChange: (id: string) => void
-  onPeriodChange: (p: PeriodPreset) => void
-  onCustomDaysChange: (v: string) => void
-  onSubmit: () => void
-}
+import { FiltersProps } from "./types"
 
 export function Filters({
   products,
@@ -23,7 +12,7 @@ export function Filters({
   onPeriodChange,
   onCustomDaysChange,
   onSubmit,
-}: Props) {
+}: FiltersProps) {
   return (
     <Container>
       <Field>

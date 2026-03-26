@@ -1,4 +1,3 @@
-import { ForecastResponse } from "../../types"
 import {
     Card,
     Badge,
@@ -7,13 +6,7 @@ import {
     KpiLabel,
     KpiValue,
 } from "./styles"
-
-interface Props {
-    data: ForecastResponse
-    preset: number | string
-}
-
-type Tone = "good" | "bad" | "neutral"
+import { KPIsProps, Tone } from "./types"
 
 function getTrendUI(trend?: string): { tone: Tone; text: string } {
     switch (trend) {
@@ -27,7 +20,7 @@ function getTrendUI(trend?: string): { tone: Tone; text: string } {
     }
 }
 // Utilizamos o histórico de vendas do produto e a tendência recente para projetar a demanda futura
-export function KPIs({ data, preset }: Props) {
+export function KPIs({ data, preset }: KPIsProps) {
     const { tone: trendTone, text: trendText } = getTrendUI(data.trend)
     const forecast = Number(data.nextDays ?? 0)      // previsão para os próximos X dias
     const days = Number(data.days ?? 0)              // dias analisados (vem do back)

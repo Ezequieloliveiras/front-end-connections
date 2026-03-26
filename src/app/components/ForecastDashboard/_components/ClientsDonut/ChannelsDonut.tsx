@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import { SIZES, useChannelsDonutHandlers } from "@/app/hooks/forecastDashboard/clientsDonut/useChannelsDonutHandlers"
 import {
   Card,
   CardHeader,
@@ -10,196 +10,23 @@ import {
   Badge,
   Divider,
 } from "./styles"
-import { getTopChannels } from "@/app/services/forecast/forecast.service"
+import { ChannelsDonutProps } from "./types"
+import { polarToCartesian, useChannelsDonutStates } from "@/app/hooks/forecastDashboard/clientsDonut/useChannelsDonutStates"
 
-interface Props {
-  productId?: string
-  days: number
-}
+export function ChannelsDonut({ productId, days }: ChannelsDonutProps) {
 
-type Channel = { name: string; value: number }
+  const states = useChannelsDonutStates({ days, productId })
+  const { channels, loading, wrapperRef, selected, setSelected } = states
 
-type Slice = Channel & {
-  percent: number
-  startAngle: number
-  endAngle: number
-  midAngle: number
-}
-
-const SIZES = {
-  outer: 180,
-  inner: 120,
-  labelRadiusOffset: 15,
-  minLabelPercent: 8,
-} as const
-
-const colorFor = (name: string) => {
-  const n = name.toLowerCase()
-  if (n.includes("mercado livre")) return "#ffc116"
-  if (n.includes("shopee")) return "#ef4444"
-  if (n.includes("amazon")) return "#000000"
-  if (n.includes("magelu")) return "#3b82f6"
-  return "#f59e0b"
-}
-
-function polarToCartesian(angleDeg: number, radius: number) {
-  const rad = (angleDeg * Math.PI) / 180
-  return { x: Math.cos(rad) * radius, y: Math.sin(rad) * radius }
-}
-
-function buildConicGradient(channels: Channel[]) {
-  const total = channels.reduce((acc, c) => acc + (Number(c.value) || 0), 0)
-  if (total <= 0) return "conic-gradient(#e5e7eb 0 100%)"
-
-  let accPercent = 0
-  const parts: string[] = []
-
-  for (const c of channels) {
-    const p = (Number(c.value) || 0) / total * 100
-    const start = accPercent
-    const end = accPercent + p
-    parts.push(`${colorFor(c.name)} ${start.toFixed(2)}% ${end.toFixed(2)}%`)
-    accPercent = end
-  }
-
-  return `conic-gradient(${parts.join(", ")})`
-}
-
-function buildHighlightGradient(slice: Slice | undefined) {
-  if (!slice) return null
-  return `conic-gradient(
-    transparent 0deg ${slice.startAngle}deg,
-    rgba(255,255,255,0.45) ${slice.startAngle}deg ${slice.endAngle}deg,
-    transparent ${slice.endAngle}deg 360deg
-  )`
-}
-
-function useOutsideClick<T extends HTMLElement>(onOutside: () => void) {
-  const ref = useRef<T | null>(null)
-
-  useEffect(() => {
-    const handler = (e: PointerEvent) => {
-      const el = ref.current
-      if (!el) return
-
-      // se clicou dentro, não faz nada
-      if (el.contains(e.target as Node)) return
-
-      onOutside()
-    }
-
-    // capture=true evita “pisca” por ordem de eventos
-    document.addEventListener("pointerdown", handler, true)
-    return () => document.removeEventListener("pointerdown", handler, true)
-  }, [onOutside])
-
-  return ref
-}
-
-function useChannels(days: number, productId?: string) {
-  const [channels, setChannels] = useState<Channel[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    if (!Number.isFinite(days) || days <= 0) return
-    setLoading(true)
-    const fetch = async () => {
-      try {
-        setLoading(true)
-        const res = await getTopChannels({ productId, days})
-        setChannels(res.topChannels ?? [])
-      } catch (err) {
-        console.error("Erro ao buscar canais:", err)
-        setChannels([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetch()
-  }, [days, productId])
-
-  return { channels, loading, setChannels }
-}
-
-export function ChannelsDonut({ productId, days }: Props) {
-  const { channels, loading } = useChannels(days, productId)
-  const [selected, setSelected] = useState<string | null>(null)
-  const wrapperRef = useOutsideClick<HTMLDivElement>(() => setSelected(null))
-
-  // tudo que é “derivado” fica aqui
-  const derived = useMemo(() => {
-    const sorted = [...channels].sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
-    const total = sorted.reduce((acc, c) => acc + (Number(c.value) || 0), 0)
-
-    const slices: Slice[] = []
-    if (total > 0) {
-      let acc = 0
-      for (const c of sorted) {
-        const value = Number(c.value) || 0
-        const percent = value / total
-        const startAngle = acc * 360
-        const endAngle = (acc + percent) * 360
-        const midAngle = (startAngle + endAngle) / 2
-        acc += percent
-        slices.push({ ...c, value, percent, startAngle, endAngle, midAngle })
-      }
-    }
-
-    return {
-      sorted,
-      total,
-      slices,
-      gradient: buildConicGradient(sorted),
-    }
-  }, [channels])
-
-  const selectedSlice = useMemo(
-    () => derived.slices.find(s => s.name === selected),
-    [derived.slices, selected]
-  )
-
-  const highlightGradient = useMemo(
-    () => buildHighlightGradient(selectedSlice),
-    [selectedSlice]
-  )
-
-  const outerSize = SIZES.outer
-  const innerSize = SIZES.inner
-  const labelRadius = (outerSize / 2 + innerSize / 2) / 2
-
-
-  const handleRingClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (derived.total <= 0) return
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-
-    const x = e.clientX - cx
-    const y = e.clientY - cy
-
-    let angle = Math.atan2(y, x) * (180 / Math.PI)
-    angle = (angle + 90 + 360) % 360
-
-    const dist = Math.sqrt(x * x + y * y)
-    const innerR = innerSize / 2
-    const outerR = outerSize / 2
-
-    // clicou no “furo” ou fora do donut => desmarca
-    if (dist < innerR || dist > outerR) {
-      setSelected(null)
-      return
-    }
-
-    const hit = derived.slices.find(s => angle >= s.startAngle && angle < s.endAngle)
-    if (!hit) {
-      setSelected(null)
-      return
-    }
-
-    setSelected(prev => (prev === hit.name ? null : hit.name))
-  }
+  const {
+    derived,
+    selectedSlice,
+    highlightGradient,
+    outerSize,
+    innerSize,
+    labelRadius,
+    handleRingClick
+  } = useChannelsDonutHandlers({ channels, selected, setSelected })
 
   return (
     <Card>

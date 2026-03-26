@@ -14,9 +14,8 @@ export const useCategoryLinkScreenStates = () => {
         try {
             setLoading(true)
 
-            const { data } = await fetchCategoryLinks()
-
-            setLinks(Array.isArray(data) ? data : [])
+            const res = await fetchCategoryLinks()
+            setLinks(Array.isArray(res) ? res : [])
         } catch (err: any) {
             console.error(err)
             pushToast(

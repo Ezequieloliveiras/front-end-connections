@@ -1,15 +1,9 @@
 'use client'
 
-import { FieldSchema } from "../../types"
 import { StyledInput } from "./styles"
+import { InputFieldProps } from "./types"
 
-interface Props {
-  field: FieldSchema
-  value: any
-  onChange: (name: string, value: any) => void
-}
-
-export function InputField({ field, value, onChange }: Props) {
+export function InputField({ field, value, onChange }: InputFieldProps) {
   return (
     <StyledInput
       name={field.name}

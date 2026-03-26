@@ -4,7 +4,7 @@ import { buildFieldsFromConfig } from "@/app/components/Announcement/_components
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { FieldConfigResponseItem, ProductOption } from "@/app/components/Announcement/_components/announcements/createAnnouncements/types"
-import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal"
+import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal/types"
 
 const emptyConfig: AnnouncementFieldConfig = {
     marketplace: "",

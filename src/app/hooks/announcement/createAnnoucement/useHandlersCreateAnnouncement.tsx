@@ -2,7 +2,7 @@ import { api } from "@/app/services/api"
 import { safeNumber } from "@/app/utils/safeNumber"
 import { Announcement } from "@/app/types/announcements/types"
 import { FieldDef } from "./types"
-import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal"
+import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal/types"
 import { FieldConfigResponseItem, ProductOption } from "@/app/components/Announcement/_components/announcements/createAnnouncements/types"
 import { useToast } from "@/app/components/Toast/Toast"
 

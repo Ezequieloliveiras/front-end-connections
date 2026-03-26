@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 import { useParams } from "next/navigation"
 import {
     Page,
@@ -15,7 +15,6 @@ import {
     Header
 } from "./styles"
 
-import { api } from "@/app/services/api"
 import { HeaderTotal } from "./_components/HeaderTotal/HeaderTotal"
 import { Filters } from "./_components/Filters/Filters"
 import { Announcements } from "./_components/announcements/Announcements"
@@ -23,33 +22,39 @@ import { ModalAnnoucements } from "./_components/ModalAnnoucements/ModalAnnounce
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
 import { useAnnouncementsView } from "./useAnnouncements"
-
-import { Marketplace } from "@/app/types/marketplace/types"
-import { Announcement, AnnouncementConfig, AnnouncementStatus } from "@/app/types/announcements/types"
+import { Announcement } from "@/app/types/announcements/types"
 import { CreateAnnouncementBar } from "./_components/announcements/createAnnouncements/CreateAnnouncementBar"
-
+import { useDetailsStates } from "@/app/hooks/announcement/detailsAnnouncement/useDetailsStates"
 
 export default function AnnouncementManager() {
     const params = useParams<{ id?: string }>()
     const announcementId = params?.id
     const { pushToast } = useToast()
 
-    const [announcements, setAnnouncements] = useState<Announcement[]>([])
-    const [loading, setLoading] = useState(true)
+    const states = useDetailsStates({ announcementId })
 
-    // filters
-    const [mpFilter, setMpFilter] = useState<Marketplace | "all">("all")
-    const [statusFilter, setStatusFilter] = useState<AnnouncementStatus | "all">("all")
-    const [search, setSearch] = useState("")
-
-    // form
-    const [formConfig, setFormConfig] = useState<Partial<AnnouncementConfig>>({})
-    console.log("formConfig", formConfig)
-    // modal
-    const [isOpen, setIsOpen] = useState(false)
-    const [mode, setMode] = useState<"edit" | "publish" | "unpublish">("edit")
-    const [selectedId, setSelectedId] = useState<string | null>(null)
-    const [page, setPage] = useState(1)
+    const {
+        announcements,
+        setAnnouncements,
+        loading,
+        setLoading,
+        mpFilter,
+        setMpFilter,
+        statusFilter,
+        setStatusFilter,
+        search,
+        setSearch,
+        formConfig,
+        setFormConfig,
+        isOpen,
+        setIsOpen,
+        mode,
+        setMode,
+        selectedId,
+        setSelectedId,
+        page,
+        setPage
+    } = states
 
     const closeModal = () => setIsOpen(false)
 
@@ -59,24 +64,6 @@ export default function AnnouncementManager() {
         statusFilter,
         search
     )
-
-    useEffect(() => {
-        const fetchAll = async () => {
-            setLoading(true)
-            try {
-                const { data } = await api.get<Announcement[]>(`/announcements`)
-                setAnnouncements(data ?? [])
-            } catch (err) {
-                console.error(err)
-                setAnnouncements([])
-                pushToast("error", "Erro ao carregar anúncios.")
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchAll()
-    }, [announcementId])
 
     // seleção/modal
     const selectedAnnouncement = useMemo(() => {

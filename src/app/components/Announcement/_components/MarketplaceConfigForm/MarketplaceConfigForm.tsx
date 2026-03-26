@@ -1,23 +1,5 @@
 import { Field, FieldLabel, Input, Select } from "./styles"
-import { FieldDef } from "@/app/hooks/announcement/createAnnoucement/types"
-
-type ConfigObject = Record<string, unknown>
-
-type ConfigPrimitiveValue =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | string[]
-  | ConfigObject
-
-type Props = {
-  fields: FieldDef[]
-  value: ConfigObject | undefined
-  onChange: (updatedValue: ConfigObject) => void
-  missingKeys?: string[]
-}
+import { ConfigObject, ConfigPrimitiveValue, MarketplaceConfigFormProps } from "./types"
 
 function getValueByPath(
   objectValue: ConfigObject,
@@ -66,7 +48,7 @@ export function MarketplaceConfigForm({
   value,
   onChange,
   missingKeys = [],
-}: Props) {
+}: MarketplaceConfigFormProps) {
   const currentConfig: ConfigObject = value ?? {}
 
   function updateFieldValue(fieldPath: string, newValue: unknown) {

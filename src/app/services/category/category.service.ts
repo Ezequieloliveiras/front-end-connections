@@ -45,5 +45,6 @@ export async function deleteCategoryLink(linkId: string) {
 
 export async function fetchCategoryLinks() {
     const { data } = await api.get("/category/links")
+    console.log('xxxx', data)
     return data
 }

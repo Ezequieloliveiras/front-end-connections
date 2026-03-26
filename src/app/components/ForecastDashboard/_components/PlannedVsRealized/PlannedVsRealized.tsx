@@ -14,18 +14,10 @@ import {
 } from "./styles"
 
 import { getTopChannels } from "@/app/services/forecast/forecast.service"
+import { Channel, PlannedVsRealizedProps } from "./types"
 
-type Channel = {
-  name: string
-  value: number
-}
 
-interface Props {
-  productId?: string
-  days: number
-}
-
-export function PlannedVsRealized({ productId, days }: Props) {
+export function PlannedVsRealized({ productId, days }: PlannedVsRealizedProps) {
   const [channels, setChannels] = useState<Channel[]>([])
   const [loading, setLoading] = useState(false)
 

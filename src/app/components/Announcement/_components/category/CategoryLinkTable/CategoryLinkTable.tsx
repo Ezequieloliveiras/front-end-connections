@@ -1,4 +1,3 @@
-import { CategoryLinkItem } from "../normalizers/marketplaceFields/categoryLinkScreen/types"
 import { CategoryLinkTableProps } from "./types"
 
 const marketplaceLabels: Record<string, string> = {

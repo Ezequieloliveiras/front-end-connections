@@ -11,13 +11,10 @@ import {
     Value,
 } from "./styles"
 
-import { MARKETPLACES, Marketplace, AnnouncementStatus } from "../../constants"
+import { MARKETPLACES } from "../../constants"
+import { HeaderTotalProps } from "./types"
 
-interface Props {
-  summaryByMarketplace: Record<Marketplace, { total: number; counts: Record<AnnouncementStatus, number> }>
-}
-
-export function HeaderTotal({ summaryByMarketplace}: Props) {
+export function HeaderTotal({ summaryByMarketplace }: HeaderTotalProps) {
     return (
         <>
             {/* se quiser usar o ícone em algum lugar: <GridIcon size={18} /> */}

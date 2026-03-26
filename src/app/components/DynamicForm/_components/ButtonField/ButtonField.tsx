@@ -4,19 +4,13 @@ import { useFormContext } from "@/app/contexts/FormContext"
 import { oauthActions } from "@/app/actions/oauth"
 import { Button } from "./styles"
 import { Marketplace } from "@/app/actions/oauth/types"
-import { FieldSchema } from "../../types"
-
-interface Props<M extends Marketplace> {
-  field: FieldSchema<M>
-  marketplaceId: M
-  values: Record<string, any>
-}
+import { ButtonFieldProps } from "./types"
 
 export function ButtonField<M extends Marketplace>({
   field,
   marketplaceId,
   values,
-}: Props<M>) {
+}: ButtonFieldProps<M>) {
 
   const { setManyFields, setUrl, url } = useFormContext()
 

@@ -1,13 +1,9 @@
 'use client'
 
-import { FieldSchema } from "../../types"
 import { InfoContainer, InfoLabel, InfoValue } from "./styles"
+import { InfoFieldProps } from "./types"
 
-interface Props {
-  field: FieldSchema
-}
-
-export function InfoField({ field }: Props) {
+export function InfoField({ field }: InfoFieldProps) {
   return (
     <InfoContainer>
       {field.label && <InfoLabel>{field.label}</InfoLabel>}

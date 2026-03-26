@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo } from "react"
 
 import {
     Card,
@@ -12,15 +12,8 @@ import {
     Td,
     EmptyState,
 } from "./styles"
-import { getForecastByDay } from "@/app/services/forecast/forecast.service"
-
-interface Props {
-    preset: number | string
-    customDays: string
-    productId: string | undefined
-}
-
-type DailyRow = { date: string; qty: number }
+import { DetailsTableProps } from "./types"
+import { useDetailsTableStates } from "@/app/hooks/forecastDashboard/detailsTable/useDetailsTableHandlers"
 
 function parseDays(preset: number | string, customDays: string) {
     const custom = Number(customDays)
@@ -37,35 +30,12 @@ export function formatDateBRIntl(iso: string) {
     }).format(date)
 }
 
-export function DetailsTable({ preset, customDays, productId }: Props) {
-  const [daily, setDaily] = useState<DailyRow[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export function DetailsTable({ preset, customDays, productId }: DetailsTableProps) {
 
   const days = useMemo(() => parseDays(preset, customDays), [preset, customDays])
 
-  useEffect(() => {
-    if (!productId) return
-
-    const fetchDaily = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        const res = await getForecastByDay(productId, days)
-
-        setDaily(res.daily)
-      } catch (err) {
-        console.error("DetailsTable fetch error:", err)
-        setError("Erro ao buscar vendas realizadas")
-        setDaily([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchDaily()
-  }, [productId, days])
+  const states = useDetailsTableStates({ productId, days })
+  const { daily, loading, error } = states
 
   return (
     <Card style={{ gridColumn: "1 / -1", position: "relative" }}>

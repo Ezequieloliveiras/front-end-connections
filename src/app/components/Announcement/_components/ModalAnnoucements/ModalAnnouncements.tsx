@@ -14,25 +14,13 @@ import {
 } from "./styles"
 
 import { MarketplaceConfigForm } from "../MarketplaceConfigForm/MarketplaceConfigForm"
-import { useEffect, useState } from "react"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { safeNumber } from "@/app/utils/safeNumber"
-
-import { Announcement, AnnouncementConfig, AnnouncementStatus, ModalMode } from "@/app/types/announcements/types"
-import { FieldDef } from "../announcements/types"
-
-type Props = {
-  mode: ModalMode
-  selectedAnnouncement: (Announcement & { configFields?: FieldDef[] }) | null
-  formConfig: Partial<AnnouncementConfig>
-  setFormConfig: React.Dispatch<React.SetStateAction<Partial<AnnouncementConfig>>>
-
-  closeModal: () => void
-  missingKeys?: string[]
-
-  setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-}
+import { Announcement, AnnouncementStatus } from "@/app/types/announcements/types"
+import { ModalAnnoucementsProps } from "./types"
+import { useModalAnnouncementStates } from "@/app/hooks/announcement/modalAnnouncement/useModalAnnouncementStates"
+import { useHandlersModalAnnouncement } from "@/app/hooks/announcement/modalAnnouncement/useHandlersModalAnnouncement"
 
 export function ModalAnnoucements({
   mode,
@@ -42,86 +30,32 @@ export function ModalAnnoucements({
   closeModal,
   missingKeys = [],
   setAnnouncements,
-}: Props) {
-  const { pushToast } = useToast()
+}: ModalAnnoucementsProps) {
 
   const fields = selectedAnnouncement?.configFields ?? []
 
-  const [formPrice, setFormPrice] = useState<number>(0)
-  const [formStock, setFormStock] = useState<number>(0)
-  const [formStatus, setFormStatus] = useState<AnnouncementStatus>("draft")
+  const states = useModalAnnouncementStates({ selectedAnnouncement })
 
-  const upsertByIdLocal = (id: string, patch: Partial<Announcement>) => {
-    setAnnouncements((prev) =>
-      prev.map((a) =>
-        a._id === id ? { ...a, ...patch, updatedAt: new Date().toISOString() } : a
-      )
-    )
-  }
+  const {
+    formPrice,
+    setFormPrice,
+    formStock,
+    setFormStock,
+    formStatus,
+    setFormStatus,
+  } = states
 
-  useEffect(() => {
-    if (!selectedAnnouncement) return
-    setFormPrice(safeNumber(selectedAnnouncement.price))
-    setFormStock(safeNumber(selectedAnnouncement.stock))
-    setFormStatus(selectedAnnouncement.status ?? "draft")
-  }, [selectedAnnouncement])
-
-  const handleSaveEdit = async () => {
-    if (!selectedAnnouncement?._id) return pushToast("error", "Anúncio sem ID para atualizar.")
-    const annId = selectedAnnouncement._id
-
-    try {
-      const payload: Pick<Announcement, "price" | "stock" | "status" | "config"> = {
-        price: safeNumber(formPrice),
-        stock: safeNumber(formStock),
-        status: formStatus,
-        config: formConfig,
-      }
-
-      const { data } = await api.patch<Announcement>(`/announcements/${annId}`, payload)
-      upsertByIdLocal(annId, data)
-      pushToast("success", "Anúncio atualizado.")
-      closeModal()
-    } catch (err) {
-      console.error(err)
-      pushToast("error", "Erro ao salvar anúncio.")
-    }
-  }
-
-  const handlePublish = async () => {
-    if (!selectedAnnouncement?._id) return pushToast("error", "Anúncio sem ID para publicar.")
-    const annId = selectedAnnouncement._id
-
-    try {
-      const payload: Pick<Announcement, "price" | "stock"> = {
-        price: safeNumber(formPrice),
-        stock: safeNumber(formStock),
-      }
-
-      const { data } = await api.post<Announcement>(`/announcements/${annId}/publish`, payload)
-      upsertByIdLocal(annId, data)
-      pushToast("success", "Publicado com sucesso.")
-      closeModal()
-    } catch (err) {
-      console.error(err)
-      pushToast("error", "Erro ao publicar.")
-    }
-  }
-
-  const handleUnpublish = async () => {
-    if (!selectedAnnouncement?._id) return pushToast("error", "Anúncio sem ID para despublicar.")
-    const annId = selectedAnnouncement._id
-
-    try {
-      const { data } = await api.post<Announcement>(`/announcements/${annId}/unpublish`)
-      upsertByIdLocal(annId, data)
-      pushToast("info", "Despublicado.")
-      closeModal()
-    } catch (err) {
-      console.error(err)
-      pushToast("error", "Erro ao despublicar.")
-    }
-  }
+  const {
+    handleSaveEdit,
+    handlePublish,
+    handleUnpublish
+  } = useHandlersModalAnnouncement({
+    selectedAnnouncement,
+    ...states,
+    setAnnouncements,
+    formConfig,
+    closeModal
+  })
 
   return (
     <ModalOverlay onMouseDown={closeModal}>
