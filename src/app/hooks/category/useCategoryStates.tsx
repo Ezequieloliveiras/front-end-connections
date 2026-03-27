@@ -48,7 +48,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         fieldsByCategory: [],
         selectedOptionalFieldIds: [],
     })
-
+    console.log("fieldConfig", fieldConfig)     
     const resetFieldConfig = () => {
         setFieldConfig({
             marketplace: "",

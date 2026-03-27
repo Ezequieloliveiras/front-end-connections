@@ -15,7 +15,7 @@ import {
 } from "../styles"
 
 import { MarketplaceConfigForm } from "../../MarketplaceConfigForm/MarketplaceConfigForm"
-import { CreateAnnouncementModalProps, } from "./types"
+import { CreateAnnouncementModalProps } from "./types"
 import { useCreateAnnouncementStates } from "@/app/hooks/announcement/createAnnoucement/useCreateAnnouncementStates"
 import { useHandlersCreateAnnouncement } from "@/app/hooks/announcement/createAnnoucement/useHandlersCreateAnnouncement"
 import { AnnouncementFieldConfig } from "../../category/EditCategoryLinkModal/types"

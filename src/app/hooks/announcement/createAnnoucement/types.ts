@@ -5,6 +5,7 @@ export type FieldOption = {
 
 export type FieldType =
   | "text"
+  | "string"
   | "number"
   | "select"
   | "checkbox"

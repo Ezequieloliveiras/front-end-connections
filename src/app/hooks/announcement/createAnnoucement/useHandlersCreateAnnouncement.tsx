@@ -5,10 +5,15 @@ import { FieldDef } from "./types"
 import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal/types"
 import { FieldConfigResponseItem, ProductOption } from "@/app/components/Announcement/_components/announcements/createAnnouncements/types"
 import { useToast } from "@/app/components/Toast/Toast"
+import {
+    EMPTY_GTIN_REASON_FIELD_ID,
+    GTIN_FIELD_ID,
+    WITHOUT_GTIN_CHECKBOX_KEY,
+} from "@/app/components/Announcement/_components/announcements/createAnnouncements/BuildFieldsFromConfig"
 
 interface useHandlersCreateAnnouncementProps {
     setAnnouncements: React.Dispatch<React.SetStateAction<Announcement[]>>
-  closeModal: () => void
+    closeModal: () => void
     selectedMarketplace: string
     setSelectedMarketplace: React.Dispatch<React.SetStateAction<string>>
     marketplaceFields: FieldDef[]
@@ -114,6 +119,31 @@ export const useHandlersCreateAnnouncement = ({
             setIsCreatingAnnouncement(true)
             setMissingFieldKeys([])
             const marketplaceCategoryId = dataCategory?.[0]?.marketplaceCategoryId ?? null
+
+            const configValues = configuration as Record<string, any>
+            const withoutGtin = Boolean(configValues[WITHOUT_GTIN_CHECKBOX_KEY])
+
+            const {
+                [WITHOUT_GTIN_CHECKBOX_KEY]: _withoutGtinCheckbox,
+                ...configWithoutUiField
+            } = configValues
+
+            const cleanedConfig: Record<string, any> = {
+                ...configWithoutUiField,
+            }
+
+            if (withoutGtin) {
+                delete cleanedConfig[GTIN_FIELD_ID]
+
+                if (!cleanedConfig[EMPTY_GTIN_REASON_FIELD_ID]) {
+                    pushToast("error", "Selecione o motivo de GTIN vazio.")
+                    setIsCreatingAnnouncement(false)
+                    return
+                }
+            } else {
+                delete cleanedConfig[EMPTY_GTIN_REASON_FIELD_ID]
+            }
+
             const payload = {
                 productId: selectedProductId,
                 marketplace: selectedMarketplace,
@@ -122,7 +152,7 @@ export const useHandlersCreateAnnouncement = ({
                 price: safeNumber(price),
                 stock: safeNumber(stock),
                 shippingMode,
-                config: configuration,
+                config: cleanedConfig,
                 marketplaceCategoryId,
                 images: url,
             }

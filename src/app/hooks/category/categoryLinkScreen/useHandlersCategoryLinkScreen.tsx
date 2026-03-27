@@ -1,10 +1,5 @@
 import { CategoryLinkItem } from "@/app/components/Announcement/_components/category/normalizers/marketplaceFields/categoryLinkScreen/types"
-
-interface UseHandlersCategoryLinkScreenProps {
-    setSelectedLink: (link: CategoryLinkItem | null) => void
-    setOpenCreate: (open: boolean) => void
-    fetchLinks: () => Promise<void>
-}
+import { UseHandlersCategoryLinkScreenProps } from "./types"
 
 export const useHandlersCategoryLinkScreen = ({ setSelectedLink, setOpenCreate, fetchLinks }: UseHandlersCategoryLinkScreenProps) => {
 

@@ -50,7 +50,7 @@ export function MarketplaceConfigForm({
   missingKeys = [],
 }: MarketplaceConfigFormProps) {
   const currentConfig: ConfigObject = value ?? {}
-
+console.log('fields', fields)
   function updateFieldValue(fieldPath: string, newValue: unknown) {
     const updatedConfig = structuredClone(currentConfig)
     setValueByPath(updatedConfig, fieldPath, newValue)

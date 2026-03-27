@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react"
 import { FieldDef, UseCreateAnnouncementStatesProps } from "./types"
-import { buildFieldsFromConfig } from "@/app/components/Announcement/_components/announcements/createAnnouncements/BuildFieldsFromConfig"
 import { api } from "@/app/services/api"
 import { useToast } from "@/app/components/Toast/Toast"
 import { FieldConfigResponseItem, ProductOption } from "@/app/components/Announcement/_components/announcements/createAnnouncements/types"
 import { AnnouncementFieldConfig } from "@/app/components/Announcement/_components/category/EditCategoryLinkModal/types"
+import {
+    buildFieldsFromConfig,
+    createWithoutGtinCheckboxField,
+    EMPTY_GTIN_REASON_FIELD_ID,
+    GTIN_FIELD_ID,
+    getRawFieldsFromConfig,
+    mapApiFieldToFieldDef,
+    WITHOUT_GTIN_CHECKBOX_KEY,
+} from "@/app/components/Announcement/_components/announcements/createAnnouncements/BuildFieldsFromConfig"
 
 const emptyConfig: AnnouncementFieldConfig = {
     marketplace: "",
@@ -39,6 +47,55 @@ export const useCreateAnnouncementStates = ({ productId }: UseCreateAnnouncement
         { label: string; value: string }[]
     >([])
     const { pushToast } = useToast()
+    console.log('configuration', configuration)
+
+    const configValues = configuration as Record<string, any>
+    const withoutGtin = Boolean(configValues[WITHOUT_GTIN_CHECKBOX_KEY])
+
+    useEffect(() => {
+        const firstConfig = Array.isArray(dataCategory) ? dataCategory[0] : undefined
+
+        if (!firstConfig) {
+            setMarketplaceFields([])
+            return
+        }
+
+        const baseFields = buildFieldsFromConfig(firstConfig)
+        const rawFields = getRawFieldsFromConfig(firstConfig)
+
+        const emptyGtinReasonRawField = rawFields.find(
+            (field) => field.id === EMPTY_GTIN_REASON_FIELD_ID
+        )
+
+        const emptyGtinReasonField = emptyGtinReasonRawField
+            ? mapApiFieldToFieldDef(emptyGtinReasonRawField)
+            : null
+
+        const hasGtinField = baseFields.some((field) => field.id === GTIN_FIELD_ID)
+
+        if (!hasGtinField) {
+            setMarketplaceFields(baseFields)
+            return
+        }
+
+        const checkboxField = createWithoutGtinCheckboxField()
+
+        const finalFields = baseFields.flatMap((field) => {
+            if (field.id !== GTIN_FIELD_ID) {
+                return [field]
+            }
+
+            if (withoutGtin) {
+                return emptyGtinReasonField
+                    ? [checkboxField, emptyGtinReasonField]
+                    : [checkboxField]
+            }
+
+            return [checkboxField, field]
+        })
+
+        setMarketplaceFields(finalFields)
+    }, [dataCategory, withoutGtin, setMarketplaceFields])
 
     useEffect(() => {
         async function fetchProducts() {
@@ -94,8 +151,15 @@ export const useCreateAnnouncementStates = ({ productId }: UseCreateAnnouncement
                 console.log('response', response)
                 setDataCategory(response.data)
                 const firstConfig = Array.isArray(response.data) ? response.data[0] : undefined
-                const normalizedFields = buildFieldsFromConfig(firstConfig)
 
+                setDataCategory(response.data)
+
+                if (!firstConfig) {
+                    setMarketplaceFields([])
+                    return
+                }
+
+                const normalizedFields = buildFieldsFromConfig(firstConfig)
                 setMarketplaceFields(normalizedFields)
             } catch (error: any) {
                 console.error(error)

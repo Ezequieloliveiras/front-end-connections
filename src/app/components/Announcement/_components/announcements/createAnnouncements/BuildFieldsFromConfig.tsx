@@ -1,9 +1,14 @@
 import { FieldDef, FieldOption, FieldType } from "@/app/hooks/announcement/createAnnoucement/types"
 import { ApiFieldItem, FieldConfigResponseItem } from "./types"
 
+export const GTIN_FIELD_ID = "GTIN"
+export const EMPTY_GTIN_REASON_FIELD_ID = "EMPTY_GTIN_REASON"
+export const WITHOUT_GTIN_CHECKBOX_KEY = "__WITHOUT_GTIN__"
+
 function isValidFieldType(value?: string): value is FieldType {
   return (
     value === "text" ||
+    value === "string" ||
     value === "number" ||
     value === "select" ||
     value === "checkbox" ||
@@ -29,7 +34,7 @@ export function normalizeFieldType(field: ApiFieldItem): FieldType {
     return "number_unit"
   }
 
-  if (hasSelectableValues(field)) {
+  if (hasSelectableValues(field) && originalType === "list") {
     return "select"
   }
 
@@ -132,6 +137,36 @@ export function mapApiFieldToFieldDef(field: ApiFieldItem): FieldDef {
   }
 }
 
+export function createWithoutGtinCheckboxField(): FieldDef {
+  return {
+    key: WITHOUT_GTIN_CHECKBOX_KEY,
+    id: WITHOUT_GTIN_CHECKBOX_KEY,
+    name: "Produto sem GTIN",
+    label: "Produto sem GTIN",
+    type: "checkbox",
+    required: false,
+    values: [],
+    options: [],
+    raw: {},
+    info: "Marque esta opção se o produto não possui GTIN.",
+    placeholder: "",
+  }
+}
+
+export function getRawFieldsFromConfig(
+  fieldConfig?: FieldConfigResponseItem
+): ApiFieldItem[] {
+  if (!fieldConfig) {
+    return []
+  }
+
+  return [
+    ...(fieldConfig.fieldsRequired ?? []),
+    ...(fieldConfig.fieldsByCategory ?? []),
+    ...(fieldConfig.selectedOptionalFieldIds ?? []),
+  ]
+}
+
 export function buildFieldsFromConfig(
   fieldConfig?: FieldConfigResponseItem
 ): FieldDef[] {
@@ -139,11 +174,9 @@ export function buildFieldsFromConfig(
     return []
   }
 
-  const allFields = [
-    ...(fieldConfig.fieldsRequired ?? []),
-    ...(fieldConfig.fieldsByCategory ?? []),
-    ...(fieldConfig.selectedOptionalFieldIds ?? []),
-  ]
+  const allFields = getRawFieldsFromConfig(fieldConfig).filter(
+    (field) => field.id !== EMPTY_GTIN_REASON_FIELD_ID
+  )
 
   const uniqueFields = allFields.filter((currentField, currentIndex, list) => {
     return (
