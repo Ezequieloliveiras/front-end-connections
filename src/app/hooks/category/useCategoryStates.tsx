@@ -48,7 +48,7 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
         fieldsByCategory: [],
         selectedOptionalFieldIds: [],
     })
-    console.log("fieldConfig", fieldConfig)     
+
     const resetFieldConfig = () => {
         setFieldConfig({
             marketplace: "",
@@ -87,11 +87,8 @@ export const useCategoryStates = ({ link }: UseCategoryStatesProps) => {
 
     const getChildrenCategories = async (categoryId: string) => {
         const { data } = await api.get(`/meli/categories/${categoryId}`)
-        console.log("children response raw", data)
 
         const children = normalizeCategoryList(data)
-
-        console.log("children normalized", children)
 
         return children
     }

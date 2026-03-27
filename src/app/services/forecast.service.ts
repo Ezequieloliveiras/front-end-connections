@@ -11,6 +11,5 @@ export interface ForecastResponse {
 
 export async function getForecastBySku(sku: string): Promise<ForecastResponse> {
   const response = await api.get(`/forecast/${sku}`)
-  console.log(response.data)
   return response.data
 }

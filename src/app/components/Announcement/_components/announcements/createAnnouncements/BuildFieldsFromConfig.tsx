@@ -137,22 +137,6 @@ export function mapApiFieldToFieldDef(field: ApiFieldItem): FieldDef {
   }
 }
 
-export function createWithoutGtinCheckboxField(): FieldDef {
-  return {
-    key: WITHOUT_GTIN_CHECKBOX_KEY,
-    id: WITHOUT_GTIN_CHECKBOX_KEY,
-    name: "Produto sem GTIN",
-    label: "Produto sem GTIN",
-    type: "checkbox",
-    required: false,
-    values: [],
-    options: [],
-    raw: {},
-    info: "Marque esta opção se o produto não possui GTIN.",
-    placeholder: "",
-  }
-}
-
 export function getRawFieldsFromConfig(
   fieldConfig?: FieldConfigResponseItem
 ): ApiFieldItem[] {
@@ -170,18 +154,16 @@ export function getRawFieldsFromConfig(
 export function buildFieldsFromConfig(
   fieldConfig?: FieldConfigResponseItem
 ): FieldDef[] {
-  if (!fieldConfig) {
-    return []
-  }
+  if (!fieldConfig) return []
 
-  const allFields = getRawFieldsFromConfig(fieldConfig).filter(
-    (field) => field.id !== EMPTY_GTIN_REASON_FIELD_ID
-  )
+  const allFields = [
+    ...(fieldConfig.fieldsRequired ?? []),
+    ...(fieldConfig.fieldsByCategory ?? []),
+    ...(fieldConfig.selectedOptionalFieldIds ?? []),
+  ]
 
   const uniqueFields = allFields.filter((currentField, currentIndex, list) => {
-    return (
-      list.findIndex((field) => field.id === currentField.id) === currentIndex
-    )
+    return list.findIndex((field) => field.id === currentField.id) === currentIndex
   })
 
   return uniqueFields.map(mapApiFieldToFieldDef)
